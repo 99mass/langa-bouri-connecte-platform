@@ -189,14 +189,20 @@ export function MapDashboard({
   const remaining = GAME.totalFragments - found
   const progress  = Math.round((found / GAME.totalFragments) * 100)
 
+  const scrollRef = useRef<HTMLDivElement>(null)
   const pathPositions = fragments.map((_, i) => getPathX(i))
 
   // Auto-scroll to active node on mount to prevent it being hidden under bottom nav
   useEffect(() => {
+    const container = scrollRef.current
     const activeNode = document.getElementById("active-node")
-    if (activeNode) {
+    if (container && activeNode) {
       const t = setTimeout(() => {
-        activeNode.scrollIntoView({ behavior: "smooth", block: "center" })
+        const containerHeight = container.clientHeight
+        const nodeTop = activeNode.offsetTop
+        const nodeHeight = activeNode.clientHeight
+        const scrollTarget = nodeTop - (containerHeight / 2) + (nodeHeight / 2)
+        container.scrollTo({ top: scrollTarget, behavior: "smooth" })
       }, 350)
       return () => clearTimeout(t)
     }
@@ -206,7 +212,7 @@ export function MapDashboard({
     <div className="relative flex h-full flex-col bg-transparent">
 
       {/* ── Scrollable path area ── */}
-      <div className="relative flex-1 overflow-y-auto overflow-x-hidden pb-32 pt-4 bg-transparent">
+      <div ref={scrollRef} className="relative flex-1 overflow-y-auto overflow-x-hidden pb-32 pt-4 bg-transparent">
         <PathBackground />
 
         {/* ── Winding path with nodes ── */}

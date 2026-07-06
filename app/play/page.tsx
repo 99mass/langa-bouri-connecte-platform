@@ -120,7 +120,7 @@ export default function PlayPage() {
       </div>
 
       {/* ── Top bar (Z-Index layer floating on top of background) ── */}
-      <div className="relative z-20 flex flex-col gap-2 px-4 py-2.5 bg-card/85 backdrop-blur-md border-b border-border/40 shadow-sm select-none sm:grid sm:grid-cols-3 sm:items-start sm:gap-2 sm:py-3">
+      <div className="sticky top-0 z-30 flex flex-col gap-2 px-4 py-2.5 bg-card/85 backdrop-blur-md border-b border-border/40 shadow-sm select-none sm:grid sm:grid-cols-3 sm:items-start sm:gap-2 sm:py-3">
         {/* Row 1 (Mobile container holding Left and Right side-by-side, disappears on desktop grid) */}
         <div className="flex items-center justify-between w-full col-span-3 sm:contents">
           

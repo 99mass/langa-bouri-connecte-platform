@@ -555,6 +555,8 @@ function HeroBg() {
         <div key={i} className="absolute rounded-full bg-amber-400/25 animate-drift"
           style={{ left: p.x, top: p.y, width: p.s, height: p.s, animationDelay: p.d }} />
       ))}
+      {/* Transition gradient - moved here to sit in background behind content */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-0" />
     </div>
   )
 }
@@ -617,7 +619,7 @@ export default function LandingPage() {
         <div className="relative z-10 mx-auto flex max-w-7xl flex-1 flex-col items-center gap-8 px-4 pb-10 pt-10 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12 lg:px-6 lg:pb-20 lg:pt-0">
 
           {/* Left column */}
-          <div className="text-center lg:text-left">
+          <div className="text-center lg:text-left flex flex-col items-center lg:items-start w-full max-w-2xl">
             <span className="animate-seal-in inline-flex items-center gap-2 rounded-full bg-white/[0.05] px-4 py-1.5 font-sans text-[11px] font-semibold uppercase tracking-[0.15em] text-amber-300/80 ring-1 ring-amber-400/15">
               <QrCode className="h-3.5 w-3.5" /> Chasse au trésor numérique
             </span>
@@ -630,7 +632,7 @@ export default function LandingPage() {
               L'adaptation numérique du jeu traditionnel sénégalais. Des QR codes, des énigmes, une aventure sur tous les terrains.
             </p>
 
-            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start justify-center">
+            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row justify-center lg:justify-start w-full">
               <Link id="hero-cta" href="/play"
                 className="shimmer group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-8 py-4 font-sans text-sm font-bold uppercase tracking-wider text-white shadow-[0_8px_32px_-4px_rgba(217,119,6,0.35)] transition-all hover:shadow-[0_12px_40px_rgba(217,119,6,0.45)] hover:scale-[1.02] active:scale-95">
                 Ouvrir la carte <MapIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -641,14 +643,14 @@ export default function LandingPage() {
               </button>
             </div>
 
-            {/* Stats */}
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 lg:justify-start lg:gap-x-8">
+            {/* Stats - Grid 2x2 on mobile, Flex row on desktop */}
+            <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-6 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-10 sm:gap-y-3 lg:justify-start w-full max-w-[320px] sm:max-w-none mx-auto lg:mx-0">
               {stats.map((s, i) => (
-                <div key={s.label} className="flex items-center gap-3">
+                <div key={s.label} className="flex flex-col items-center text-center sm:flex-row sm:items-center sm:gap-3 lg:justify-start">
                   {i > 0 && <span className="hidden text-white/[0.08] sm:block">|</span>}
-                  <div className={i > 0 ? "sm:ml-2" : ""}>
-                    <p className="font-heading text-xl font-black text-white sm:text-2xl lg:text-3xl">{s.n}</p>
-                    <p className="font-sans text-[9px] font-medium uppercase tracking-[0.2em] text-white/35">{s.label}</p>
+                  <div className="flex flex-col items-center text-center sm:items-start sm:text-left sm:ml-2">
+                    <p className="font-heading text-2xl font-black text-white sm:text-2xl lg:text-3xl leading-tight">{s.n}</p>
+                    <p className="font-sans text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40 mt-1">{s.label}</p>
                   </div>
                 </div>
               ))}
@@ -664,9 +666,6 @@ export default function LandingPage() {
           <span className="font-sans text-[9px] uppercase tracking-[0.2em]">Découvrir</span>
           <ChevronDown className="h-4 w-4 animate-bounce" />
         </div>
-
-        {/* Transition gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
       </section>
 
       {/* ═══════════ CONCEPT ═══════════ */}

@@ -8,17 +8,20 @@ const cinzel = Cinzel({
   variable: '--font-cinzel',
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800', '900'],
+  preload: false,
 })
 const ebGaramond = EB_Garamond({
   variable: '--font-garamond',
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   style: ['normal', 'italic'],
+  preload: false,
 })
 const inter = Inter({
   variable: '--font-inter',
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
+  preload: false,
 })
 
 export const metadata: Metadata = {
