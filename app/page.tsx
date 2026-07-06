@@ -214,8 +214,8 @@ function WatchWheel() {
   // Server-side placeholder to prevent layout shifts and hydration errors
   if (!mounted) {
     return (
-      <div className="relative flex flex-col items-center justify-center overflow-hidden w-full max-w-full h-[300px] sm:h-[360px] lg:h-[430px]">
-        <div className="relative origin-center scale-[0.65] sm:scale-[0.8] lg:scale-100 flex items-center justify-center rounded-full border border-amber-400/[0.1] shrink-0"
+      <div className="relative flex flex-col items-center justify-center overflow-hidden w-full max-w-full h-[250px] sm:h-[360px] lg:h-[430px]">
+        <div className="absolute origin-center scale-[0.58] sm:scale-[0.8] sm:relative flex items-center justify-center rounded-full border border-amber-400/[0.1] shrink-0"
           style={{ width: SIZE, height: SIZE }}>
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/[0.06] ring-1 ring-amber-400/20">
             <Compass className="h-12 w-12 text-amber-400/90" strokeWidth={1.25} />
@@ -226,8 +226,8 @@ function WatchWheel() {
   }
 
   return (
-    <div className="relative flex flex-col items-center justify-center overflow-hidden w-full max-w-full h-[300px] sm:h-[360px] lg:h-[430px]">
-      <div className="relative origin-center scale-[0.65] sm:scale-[0.8] lg:scale-100 shrink-0"
+    <div className="relative flex flex-col items-center justify-center overflow-hidden w-full max-w-full h-[250px] sm:h-[360px] lg:h-[430px]">
+      <div className="absolute origin-center scale-[0.58] sm:scale-[0.8] sm:relative shrink-0"
         style={{ width: SIZE, height: SIZE }}>
 
         {/* ── Watch tick marks ── */}
@@ -555,8 +555,8 @@ function HeroBg() {
         <div key={i} className="absolute rounded-full bg-amber-400/25 animate-drift"
           style={{ left: p.x, top: p.y, width: p.s, height: p.s, animationDelay: p.d }} />
       ))}
-      {/* Transition gradient - moved here to sit in background behind content */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-0" />
+      {/* Transition gradient - subtle on mobile to prevent watch darkening */}
+      <div className="absolute bottom-0 left-0 right-0 h-12 sm:h-32 bg-gradient-to-t from-background to-transparent z-0" />
     </div>
   )
 }
