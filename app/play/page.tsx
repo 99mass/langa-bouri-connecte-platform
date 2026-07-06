@@ -120,53 +120,58 @@ export default function PlayPage() {
       </div>
 
       {/* ── Top bar (Z-Index layer floating on top of background) ── */}
-      <div className="relative z-20 grid grid-cols-3 items-start gap-2 px-4 py-3 bg-card/85 backdrop-blur-md border-b border-border/40 shadow-sm select-none">
-        {/* Left column */}
-        <div className="flex flex-col items-start gap-1">
-          <Link
-            href="/"
-            className="flex items-center gap-1 font-sans text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Accueil
-          </Link>
+      <div className="relative z-20 flex flex-col gap-2 px-4 py-2.5 bg-card/85 backdrop-blur-md border-b border-border/40 shadow-sm select-none sm:grid sm:grid-cols-3 sm:items-start sm:gap-2 sm:py-3">
+        {/* Row 1 (Mobile container holding Left and Right side-by-side, disappears on desktop grid) */}
+        <div className="flex items-center justify-between w-full col-span-3 sm:contents">
           
-          <div className="flex items-center gap-1.5 rounded-full px-2 py-0.5 bg-emerald-500/5 ring-1 ring-emerald-500/10 font-sans text-[10px] font-bold text-emerald-500">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="truncate max-w-[55px] sm:max-w-[70px]">{nickname}</span>
-            <span className="opacity-40">|</span>
-            <span>{found}/{GAME.totalFragments}</span>
+          {/* Left Column */}
+          <div className="flex flex-col items-start gap-1">
+            <Link
+              href="/"
+              className="flex items-center gap-1 font-sans text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Accueil
+            </Link>
+            
+            <div className="flex items-center gap-1.5 rounded-full px-2 py-0.5 bg-emerald-500/5 ring-1 ring-emerald-500/10 font-sans text-[10px] font-bold text-emerald-500">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="truncate max-w-[55px] sm:max-w-[70px]">{nickname}</span>
+              <span className="opacity-40">|</span>
+              <span>{found}/{GAME.totalFragments}</span>
+            </div>
           </div>
+
+          {/* Right Column */}
+          <div className="flex flex-col items-end gap-1 sm:order-2">
+            <button
+              type="button"
+              onClick={cycleTheme}
+              className="flex items-center gap-1.5 rounded-full px-2.5 py-1 ring-1 transition-all cursor-pointer hover:bg-accent/15 active:scale-95 text-left"
+              style={{
+                background: "color-mix(in oklch, var(--accent) 8%, var(--card))",
+                borderColor: "color-mix(in oklch, var(--accent) 25%, var(--border))",
+              }}
+            >
+              <ThemeIcon iconName={theme.iconName} className="h-3.5 w-3.5 text-accent" strokeWidth={1.75} />
+              <span className="font-sans text-[10px] font-semibold uppercase tracking-wider text-accent">
+                {theme.label.split(" ")[0]}
+              </span>
+            </button>
+            
+            <div className="flex items-center gap-1.5 font-mono text-[12px] font-extrabold text-accent px-2 py-0.5 rounded-md bg-accent/5 ring-1 ring-accent/10">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+              {elapsed}
+            </div>
+          </div>
+
         </div>
 
-        {/* Center column - Event name in full */}
-        <div className="flex items-center justify-center text-center min-h-[38px]">
-          <span className="font-heading text-xs font-black uppercase tracking-wider text-primary leading-tight">
+        {/* Center column - Event name in full (Row 2 on mobile, Center on desktop) */}
+        <div className="flex items-center justify-center text-center w-full min-h-[22px] sm:min-h-[38px] border-t border-border/10 pt-2 sm:border-0 sm:pt-0 sm:col-start-2 sm:row-start-1">
+          <span className="font-heading text-[11px] sm:text-xs font-black uppercase tracking-wider text-primary leading-tight">
             {titles[tab]}
           </span>
-        </div>
-
-        {/* Right column */}
-        <div className="flex flex-col items-end gap-1">
-          <button
-            type="button"
-            onClick={cycleTheme}
-            className="flex items-center gap-1.5 rounded-full px-2.5 py-1 ring-1 transition-all cursor-pointer hover:bg-accent/15 active:scale-95 text-left"
-            style={{
-              background: "color-mix(in oklch, var(--accent) 8%, var(--card))",
-              borderColor: "color-mix(in oklch, var(--accent) 25%, var(--border))",
-            }}
-          >
-            <ThemeIcon iconName={theme.iconName} className="h-3.5 w-3.5 text-accent" strokeWidth={1.75} />
-            <span className="font-sans text-[10px] font-semibold uppercase tracking-wider text-accent">
-              {theme.label.split(" ")[0]}
-            </span>
-          </button>
-          
-          <div className="flex items-center gap-1.5 font-mono text-[12px] font-extrabold text-accent px-2 py-0.5 rounded-md bg-accent/5 ring-1 ring-accent/10">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-            {elapsed}
-          </div>
         </div>
       </div>
 

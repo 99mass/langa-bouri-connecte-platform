@@ -214,8 +214,8 @@ function WatchWheel() {
   // Server-side placeholder to prevent layout shifts and hydration errors
   if (!mounted) {
     return (
-      <div className="relative flex flex-col items-center gap-3">
-        <div className="relative origin-center scale-[0.68] sm:scale-[0.82] lg:scale-100 flex items-center justify-center rounded-full border border-amber-400/[0.1]"
+      <div className="relative flex flex-col items-center justify-center overflow-hidden w-full max-w-full h-[300px] sm:h-[360px] lg:h-[430px]">
+        <div className="relative origin-center scale-[0.65] sm:scale-[0.8] lg:scale-100 flex items-center justify-center rounded-full border border-amber-400/[0.1] shrink-0"
           style={{ width: SIZE, height: SIZE }}>
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/[0.06] ring-1 ring-amber-400/20">
             <Compass className="h-12 w-12 text-amber-400/90" strokeWidth={1.25} />
@@ -226,8 +226,8 @@ function WatchWheel() {
   }
 
   return (
-    <div className="relative flex flex-col items-center gap-3">
-      <div className="relative origin-center scale-[0.68] sm:scale-[0.82] lg:scale-100"
+    <div className="relative flex flex-col items-center justify-center overflow-hidden w-full max-w-full h-[300px] sm:h-[360px] lg:h-[430px]">
+      <div className="relative origin-center scale-[0.65] sm:scale-[0.8] lg:scale-100 shrink-0"
         style={{ width: SIZE, height: SIZE }}>
 
         {/* ── Watch tick marks ── */}
