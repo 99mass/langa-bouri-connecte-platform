@@ -26,13 +26,18 @@ import {
   Globe,
   Handshake,
   Megaphone,
+  Check,
+  Lock,
+  Gift,
+  MapPin,
   type LucideProps,
 } from "lucide-react"
 import { Seal } from "@/components/lb/seal"
 import { Countdown } from "@/components/lb/countdown"
 import { ContactModal } from "@/components/lb/contact-modal"
-import { GAME } from "@/lib/game-data"
+import { GAME, upcomingEventsByTheme } from "@/lib/game-data"
 import { THEMES } from "@/lib/theme-config"
+import { useTheme } from "@/lib/theme-context"
 import { cn } from "@/lib/utils"
 
 /* ── Domain icon map ── */
@@ -161,7 +166,7 @@ function Section({ children, className, id, dark }: { children: React.ReactNode;
   const ref = useFadeUp()
   return (
     <section id={id} ref={ref as React.RefObject<HTMLElement>} className={cn("fade-up", dark && "bg-[#131110] text-white", className)}>
-      <div className="mx-auto max-w-6xl px-5 lg:px-8">{children}</div>
+      <div className="mx-auto max-w-7xl px-4 lg:px-6">{children}</div>
     </section>
   )
 }
@@ -349,6 +354,190 @@ function WatchWheel() {
 }
 
 /* ════════════════════════════════════════
+   MAP PREVIEW GALLERY
+   ════════════════════════════════════════ */
+function MapPreviewGallery() {
+  const [selectedDomain, setSelectedDomain] = useState<string>("culture")
+
+  const currentTheme = THEMES[selectedDomain as keyof typeof THEMES]
+
+  const filterClass = {
+    culture:     "",
+    sport:       "hue-rotate-[80deg] saturate-110 contrast-[1.02]",
+    nature:      "hue-rotate-[110deg] saturate-120 contrast-100",
+    histoire:    "sepia-[0.12] contrast-[0.98] brightness-[0.98]",
+    science:     "hue-rotate-[210deg] saturate-130 brightness-95",
+    gastronomie: "hue-rotate-[-25deg] saturate-120 brightness-[1.02]",
+  }[selectedDomain] || ""
+
+  return (
+    <div className="mt-10 grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
+      {/* Sidebar - domain buttons */}
+      <div className="lg:col-span-2 flex flex-col gap-2.5">
+        <p className="font-sans text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5 text-center lg:text-left">
+          Choisissez un domaine pour voir sa carte
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2">
+          {domains.map((d) => {
+            const Icon = domainIcons[d.id]
+            const isSelected = selectedDomain === d.id
+            return (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => setSelectedDomain(d.id)}
+                className={cn(
+                  "flex items-center gap-3 rounded-2xl px-4 py-3 text-left transition-all ring-1 text-xs font-bold font-sans",
+                  isSelected
+                    ? "bg-accent/10 ring-accent/40 shadow-sm text-primary"
+                    : "bg-card ring-border/30 hover:ring-border/60 text-muted-foreground"
+                )}
+                style={isSelected ? { color: d.accent } : undefined}
+              >
+                <div
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all"
+                  style={{ background: isSelected ? `color-mix(in oklch, ${d.accent} 15%, transparent)` : 'var(--muted)' }}
+                >
+                  <Icon className="h-4.5 w-4.5" style={{ color: isSelected ? d.accent : 'var(--muted-foreground)' }} strokeWidth={1.75} />
+                </div>
+                <div className="truncate min-w-0">
+                  <p className="font-heading text-xs font-bold leading-tight">{d.label.split(" ")[0]}</p>
+                  <p className="font-sans text-[10px] opacity-70 truncate">{d.label.split(" ").slice(1).join(" ")}</p>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Map device mock container */}
+      <div className="lg:col-span-3 flex justify-center">
+        <div className="relative w-full max-w-[280px] aspect-[9/16] rounded-[2.25rem] ring-[10px] ring-neutral-900 bg-neutral-950 shadow-2xl overflow-hidden flex flex-col border-[2px] border-neutral-800">
+          
+          {/* Mock screen status bar */}
+          <div className="h-5 bg-transparent relative z-10 flex items-center justify-between px-5 pt-2 select-none">
+            <span className="text-[8px] font-sans font-bold text-white/40">9:41</span>
+            <div className="flex gap-1 items-center">
+              <span className="w-2.5 h-1.2 rounded-sm bg-white/40" />
+            </div>
+          </div>
+
+          {/* Mini Top bar */}
+          <div className="flex items-center justify-between px-4 py-1 bg-transparent relative z-10">
+            <span className="font-sans text-[8px] text-white/30">Accueil</span>
+            <span className="font-heading text-[9px] font-bold uppercase tracking-wider text-white">Carte</span>
+            <div
+              className="flex items-center gap-1 rounded-full px-2 py-0.5 ring-1"
+              style={{
+                background: `color-mix(in oklch, ${currentTheme.cssVars["--accent"]} 10%, transparent)`,
+                borderColor: `color-mix(in oklch, ${currentTheme.cssVars["--accent"]} 30%, transparent)`,
+              }}
+            >
+              <span className="font-sans text-[7px] font-bold uppercase tracking-wider" style={{ color: currentTheme.cssVars["--accent"] }}>
+                {currentTheme.label.split(" ")[0]}
+              </span>
+            </div>
+          </div>
+
+          {/* Winding path area inside phone mock */}
+          <div className="relative flex-1 overflow-hidden p-4 flex flex-col justify-center gap-2">
+            
+            {/* Dynamic Map Topography Background */}
+            <div aria-hidden className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+              <div
+                className={cn(
+                  "absolute inset-0 bg-cover bg-center transition-all duration-700 opacity-[0.25]",
+                  filterClass
+                )}
+                style={{ backgroundImage: "url('/images/map_culture.jpg')" }}
+              />
+              <div
+                className="absolute inset-0 transition-colors duration-700 mix-blend-color opacity-[0.22]"
+                style={{ backgroundColor: currentTheme.cssVars["--accent"] }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-neutral-950/20 opacity-90" />
+            </div>
+
+            {/* Winding paths list */}
+            <div className="relative z-10 flex flex-col gap-0 select-none">
+              
+              {/* Node 1: Completed */}
+              <div className="relative flex flex-col items-center pl-[35%] py-0.5">
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-b-[3px]"
+                  style={{
+                    background: "var(--wood)",
+                    borderColor: "color-mix(in oklch, var(--wood) 80%, black)",
+                    color: "white"
+                  }}
+                >
+                  <Check className="h-3 w-3" strokeWidth={3} />
+                </div>
+                <p className="font-heading text-[8px] text-white/80 mt-1 font-bold">Ndoumbélane</p>
+              </div>
+
+              {/* Connector line 1 */}
+              <div className="relative h-5 w-full max-w-[120px] mx-auto opacity-40">
+                <svg className="h-full w-full" viewBox="0 0 200 48" preserveAspectRatio="none">
+                  <path d="M 68 0 C 68 24, 132 24, 132 48" fill="none" stroke={currentTheme.cssVars["--accent"]} strokeWidth="4" />
+                </svg>
+              </div>
+
+              {/* Node 2: Active */}
+              <div className="relative flex flex-col items-center pr-[35%] py-0.5">
+                {/* Speech bubble */}
+                <div className="absolute bottom-full mb-1 z-20">
+                  <div className="relative bg-amber-500 text-white font-heading text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md shadow-sm">
+                    Continuer
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-t-[3px] border-t-amber-500" />
+                  </div>
+                </div>
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-b-[3px]"
+                  style={{
+                    background: currentTheme.cssVars["--accent"],
+                    borderColor: `color-mix(in oklch, ${currentTheme.cssVars["--accent"]} 70%, black)`,
+                    color: "white"
+                  }}
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-white" strokeWidth={2} />
+                </div>
+                <p className="font-heading text-[8px] text-white mt-1 font-bold">Rive du Saloum</p>
+              </div>
+
+              {/* Connector line 2 */}
+              <div className="relative h-5 w-full max-w-[120px] mx-auto opacity-20">
+                <svg className="h-full w-full" viewBox="0 0 200 48" preserveAspectRatio="none">
+                  <path d="M 132 0 C 132 24, 68 24, 68 48" fill="none" stroke="var(--border)" strokeWidth="3" strokeDasharray="4 4" />
+                </svg>
+              </div>
+
+              {/* Node 3: Locked */}
+              <div className="relative flex flex-col items-center pl-[35%] py-0.5 opacity-50">
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-b-2"
+                  style={{ background: "var(--muted)", borderColor: "var(--border)", color: "var(--muted-foreground)" }}
+                >
+                  <Lock className="h-3 w-3" strokeWidth={2} />
+                </div>
+                <p className="font-heading text-[8px] text-white/50 mt-1 font-bold">???</p>
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* Mock bottom Nav */}
+          <div className="h-8 bg-neutral-900 border-t border-white/5 relative z-10 flex items-center justify-around px-4">
+            <MapIcon className="h-3.5 w-3.5" style={{ color: currentTheme.cssVars["--accent"] }} />
+            <ScrollText className="h-3.5 w-3.5 text-white/30" />
+            <Trophy className="h-3.5 w-3.5 text-white/30" />
+            <Users className="h-3.5 w-3.5 text-white/30" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ════════════════════════════════════════
    HERO BACKGROUND
    ════════════════════════════════════════ */
 function HeroBg() {
@@ -386,6 +575,8 @@ const navLinks = [
    ════════════════════════════════════════ */
 export default function LandingPage() {
   const [showContact, setShowContact] = useState(false)
+  const { theme } = useTheme()
+  const activeEvents = upcomingEventsByTheme[theme.id] || upcomingEventsByTheme.culture
 
   return (
     <main className="min-h-dvh overflow-x-hidden bg-background" style={{ scrollBehavior: 'smooth' }}>
@@ -395,7 +586,7 @@ export default function LandingPage() {
         <HeroBg />
 
         {/* Nav */}
-        <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-5 pt-5 lg:px-8 lg:pt-7">
+        <header className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-between px-4 pt-5 lg:px-6 lg:pt-7">
           <div className="flex items-center gap-2.5">
             <Seal className="h-8 w-8" />
             <span className="font-heading text-xs font-bold uppercase tracking-[0.15em] text-white/85 sm:text-sm">
@@ -423,7 +614,7 @@ export default function LandingPage() {
         </header>
 
         {/* Hero content — grid: text left, wheel right */}
-        <div className="relative z-10 mx-auto flex max-w-6xl flex-1 flex-col items-center gap-8 px-5 pb-10 pt-10 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12 lg:px-8 lg:pb-20 lg:pt-0">
+        <div className="relative z-10 mx-auto flex max-w-7xl flex-1 flex-col items-center gap-8 px-4 pb-10 pt-10 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12 lg:px-6 lg:pb-20 lg:pt-0">
 
           {/* Left column */}
           <div className="text-center lg:text-left">
@@ -441,13 +632,12 @@ export default function LandingPage() {
 
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start justify-center">
               <Link id="hero-cta" href="/play"
-                className="shimmer group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-8 py-4 font-sans text-sm font-bold uppercase tracking-wider text-white shadow-[0_8px_32px_-4px_rgba(217,119,6,0.4)] transition-all hover:shadow-[0_12px_40px_rgba(217,119,6,0.5)] hover:scale-[1.02] active:scale-95">
-                Commencer l'aventure
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                className="shimmer group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-8 py-4 font-sans text-sm font-bold uppercase tracking-wider text-white shadow-[0_8px_32px_-4px_rgba(217,119,6,0.35)] transition-all hover:shadow-[0_12px_40px_rgba(217,119,6,0.45)] hover:scale-[1.02] active:scale-95">
+                Ouvrir la carte <MapIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <button type="button" onClick={() => setShowContact(true)}
-                className="inline-flex items-center gap-2 rounded-full px-6 py-4 font-sans text-sm font-medium text-white/50 ring-1 ring-white/10 transition-all hover:text-white/80 hover:ring-white/25 hover:bg-white/[0.04]">
-                <Megaphone className="h-4 w-4" /> Nous contacter
+                className="inline-flex items-center gap-2 rounded-full px-6 py-4 font-sans text-sm font-medium text-white/50 ring-1 ring-white/15 transition-all hover:text-white/80 hover:ring-white/30 hover:bg-white/[0.04]">
+                <Megaphone className="h-4 w-4" /> En savoir plus
               </button>
             </div>
 
@@ -538,7 +728,9 @@ export default function LandingPage() {
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 lg:mx-0">
                   <s.icon className="h-6 w-6 text-accent" strokeWidth={1.75} />
                 </div>
-                <h3 className="font-heading text-base font-bold text-primary">{s.title}</h3>
+                <div className="truncate min-w-0">
+                  <h3 className="font-heading text-base font-bold text-primary">{s.title}</h3>
+                </div>
                 <p className="mt-2 font-sans text-sm text-muted-foreground leading-relaxed">{s.body}</p>
               </div>
               {i < steps.length - 1 && (
@@ -551,39 +743,54 @@ export default function LandingPage() {
         </div>
       </Section>
 
-      {/* ═══════════ FORMATS ═══════════ */}
-      <Section id="formats" className="py-16 lg:py-24 bg-muted/40">
-        <SectionHeader tag="Formats" title="Une aventure à votre échelle"
-          sub="Le jeu est conçu pour s'adapter à la durée, l'espace physique et le niveau de difficulté souhaités." />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {formats.map((f) => (
-            <div key={f.title} className="modern-card group relative overflow-hidden p-6 text-center">
-              <div className={cn("mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/60 transition-transform group-hover:scale-110", f.color)}>
-                <f.icon className="h-7 w-7" strokeWidth={1.5} />
+      {/* ═══════════ EVENTS ═══════════ */}
+      <Section id="evenements" className="py-16 lg:py-24 bg-muted/20">
+        <SectionHeader tag="Calendrier" title="Événements à venir"
+          sub="Découvrez les prochaines expéditions prévues sur le territoire sénégalais et inscrivez-vous." />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {activeEvents.map((e) => (
+            <div key={e.id} className="modern-card overflow-hidden !rounded-2xl flex flex-col">
+              <div className="relative h-44 shrink-0">
+                <img
+                  src={e.cover || "/placeholder.svg"}
+                  alt={e.title}
+                  className="h-full w-full object-cover"
+                />
               </div>
-              <h3 className="font-heading text-lg font-bold text-primary">{f.title}</h3>
-              <div className="my-4 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-              <div className="space-y-2">
-                <div className="flex items-center justify-between font-sans text-sm">
-                  <span className="text-muted-foreground">Durée</span>
-                  <span className="font-semibold text-primary">{f.duration}</span>
+              <div className="p-5 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-heading text-base font-bold text-primary">{e.title}</h3>
+                  <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 font-sans text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5 text-muted-foreground/60" /> {e.location}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <CalendarDays className="h-3.5 w-3.5 text-muted-foreground/60" /> {e.date}
+                    </span>
+                  </div>
+                  <div className="mt-4 flex items-center gap-2 rounded-xl bg-muted px-3 py-2 ring-1 ring-border/40">
+                    <Gift className="h-4 w-4 text-accent" />
+                    <span className="font-sans text-[11px] font-semibold text-primary">
+                      {e.reward}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between font-sans text-sm">
-                  <span className="text-muted-foreground">QR Codes</span>
-                  <span className="font-semibold text-primary">{f.codes}</span>
-                </div>
-                <div className="flex items-center justify-between font-sans text-sm">
-                  <span className="text-muted-foreground">Difficulté</span>
-                  <span className={cn("font-semibold", f.color)}>{f.diff}</span>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowContact(true)}
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-primary py-2.5 font-sans text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-sm transition-all hover:bg-primary/95"
+                >
+                  S'inscrire à l'expédition
+                </button>
               </div>
             </div>
           ))}
         </div>
       </Section>
 
+
       {/* ═══════════ REWARDS ═══════════ */}
-      <Section className="py-16 lg:py-24">
+      <Section className="py-16 lg:py-24 bg-muted/40">
         <SectionHeader tag="Récompenses" title="Des trésors à la clé"
           sub="Chaque campagne récompense les aventuriers les plus audacieux avec des prix exclusifs." />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -625,6 +832,15 @@ export default function LandingPage() {
           <div className="my-5 h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
           <p className="mb-3 font-sans text-xs font-medium uppercase tracking-widest text-muted-foreground">Fin de la quête dans</p>
           <div className="flex justify-center"><Countdown /></div>
+          
+          <div className="mt-6 flex justify-center">
+            <Link
+              href="/play"
+              className="inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-3 font-sans text-xs font-bold uppercase tracking-wider text-white shadow-[0_4px_16px_rgba(217,119,6,0.25)] transition-all hover:shadow-[0_6px_20px_rgba(217,119,6,0.35)] hover:scale-[1.02] active:scale-95"
+            >
+              Commencer l'expédition <ArrowRight className="h-4.5 w-4.5" />
+            </Link>
+          </div>
         </div>
       </Section>
 
@@ -632,44 +848,17 @@ export default function LandingPage() {
       <Section id="faq" className="py-16 lg:py-24 bg-muted/40">
         <SectionHeader tag="FAQ" title="Questions fréquentes"
           sub="Tout ce que vous devez savoir avant de partir à l'aventure ou d'organiser votre événement." />
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
+        <div className="mx-auto max-w-3xl flex flex-col gap-3">
           {faqs.map((f) => <FaqItem key={f.q} q={f.q} a={f.a} />)}
         </div>
       </Section>
 
       {/* ═══════════ FINAL CTA ═══════════ */}
-      <Section className="py-16 lg:py-24">
-        <div className="modern-card mx-auto max-w-2xl overflow-hidden !border-0 !shadow-none relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#141210] via-[#1e1a14] to-[#141210]" />
-          <div aria-hidden className="absolute inset-0 overflow-hidden">
-            <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-amber-500/10 blur-[60px]" />
-            <div className="absolute -left-16 -bottom-16 h-48 w-48 rounded-full bg-amber-600/[0.06] blur-[60px]" />
-          </div>
-          <div className="relative z-10 flex flex-col items-center gap-5 px-8 py-14 text-center lg:py-20">
-            <Compass className="h-12 w-12 text-amber-400/50 animate-float" strokeWidth={1} />
-            <h2 className="font-heading text-2xl font-bold text-white sm:text-3xl lg:text-4xl">
-              Prêt pour l'aventure ?
-            </h2>
-            <p className="max-w-md font-sans text-sm text-white/45 leading-relaxed sm:text-base">
-              Organisez votre propre chasse au trésor connectée ou rejoignez une campagne existante.
-            </p>
-            <div className="mt-2 flex flex-col items-center gap-3 sm:flex-row">
-              <Link id="bottom-cta" href="/play"
-                className="shimmer group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-8 py-4 font-sans text-sm font-bold uppercase tracking-wider text-white shadow-[0_8px_32px_-4px_rgba(217,119,6,0.35)] transition-all hover:shadow-[0_12px_40px_rgba(217,119,6,0.45)] hover:scale-[1.02] active:scale-95">
-                Ouvrir la carte <MapIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-              <button type="button" onClick={() => setShowContact(true)}
-                className="inline-flex items-center gap-2 rounded-full px-6 py-4 font-sans text-sm font-medium text-white/50 ring-1 ring-white/15 transition-all hover:text-white/80 hover:ring-white/30 hover:bg-white/[0.04]">
-                <Megaphone className="h-4 w-4" /> Nous contacter
-              </button>
-            </div>
-          </div>
-        </div>
-      </Section>
+      
 
       {/* ═══════════ FOOTER ═══════════ */}
       <footer className="bg-[#111010] text-white">
-        <div className="mx-auto max-w-6xl px-5 py-10 lg:px-8 lg:py-14">
+        <div className="mx-auto max-w-7xl px-4 py-10 lg:px-6 lg:py-14">
           {/* Top row */}
           <div className="flex flex-col items-center gap-8 lg:flex-row lg:justify-between">
             <div>

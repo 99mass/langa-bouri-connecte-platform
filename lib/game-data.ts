@@ -1,28 +1,31 @@
-export type FragmentStatus = "completed" | "active" | "locked"
+"use client"
+
+export type Game = {
+  title: string
+  event: string
+  player: string
+  totalFragments: number
+}
+
+export const GAME: Game = {
+  title: "Langa Bouri Connecté",
+  event: "L'Héritage de Ndiadiane",
+  player: "Explorateur Anonyme",
+  totalFragments: 6,
+}
 
 export type Fragment = {
   id: number
   index: string
   title: string
   place: string
-  status: FragmentStatus
-  /** position on the illustrated map in % */
-  x: number
-  y: number
   story: string
   clue: string
   media: "image" | "audio" | "video"
   reward: string
-}
-
-export const GAME = {
-  title: "Langa Bouri Connecté",
-  subtitle:
-    "Une chasse au trésor traditionnelle transformée en aventure numérique",
-  event: "L'Héritage de Ndiadiane",
-  totalFragments: 6,
-  foundFragments: 3,
-  player: "Explorateur Anonyme",
+  status: "completed" | "active" | "locked"
+  x: number
+  y: number
 }
 
 export const fragments: Fragment[] = [
@@ -31,102 +34,79 @@ export const fragments: Fragment[] = [
     index: "1/6",
     title: "Le Baobab des Anciens",
     place: "Village de Ndoumbélane",
+    story: "C'est sous cet arbre centenaire que les anciens se réunissaient pour sceller les alliances et raconter les contes initiatiques.",
+    clue: "Cherchez la branche orientée vers le couchant, là où le soleil touche la terre à l'équinoxe.",
+    media: "audio",
+    reward: "Fiole de parfum d'ambre",
     status: "completed",
-    x: 22,
-    y: 30,
-    story:
-      "Sous l'arbre à palabres, les griots gardent la première parole de la quête.",
-    clue: "Là où l'ombre est la plus vieille, la racine désigne le nord.",
-    media: "image",
-    reward: "Perle d'or ancienne",
+    x: 100,
+    y: 60,
   },
   {
     id: 2,
     index: "2/6",
     title: "La Traversée du Fleuve",
     place: "Rive du Saloum",
+    story: "Les pirogues de guerre traversaient ce bras de mer pour ravitailler le fort en cas de siège secret.",
+    clue: "Près de l'embarcadère en bois flotté, sous la troisième lanterne de cuivre.",
+    media: "image",
+    reward: "Pendentif en cauris vernis",
     status: "completed",
-    x: 44,
-    y: 52,
-    story:
-      "Le pêcheur connaît le gué secret que seuls les initiés empruntent.",
-    clue: "Compte les pirogues amarrées : leur nombre ouvre le second sceau.",
-    media: "audio",
-    reward: "Cauri gravé",
+    x: 240,
+    y: 110,
   },
   {
     id: 3,
     index: "3/6",
     title: "Le Marché aux Épices",
     place: "Cité de Kaolack",
+    story: "Un carrefour de senteurs et de couleurs où les marchands de tout le continent s'échangeaient de l'or contre des secrets parfumés.",
+    clue: "Derrière l'étal du vendeur de piment rouge, contre le mur de briques crues.",
+    media: "video",
+    reward: "Sachet de gingembre rare",
     status: "completed",
-    x: 63,
-    y: 34,
-    story:
-      "Dans la poussière du marché, une odeur de menthe cache une inscription.",
-    clue: "Le marchand au turban bleu récite un proverbe : retiens le dernier mot.",
-    media: "image",
-    reward: "Fiole de parfum d'ambre",
+    x: 80,
+    y: 180,
   },
   {
     id: 4,
     index: "4/6",
     title: "Le Fort de l'Île",
     place: "Île de Gorée",
+    story: "Les canons rouillés protègent encore l'entrée de la forteresse construite par les navigateurs d'autrefois.",
+    clue: "Dans l'embrasure de la canonnière faisant face à l'est, gravé dans la pierre volcanique.",
+    media: "image",
+    reward: "Boussole en laiton gravé",
     status: "active",
-    x: 78,
-    y: 62,
-    story:
-      "Les murs de pierre ont vu passer les navigateurs. Une énigme y sommeille depuis 1802.",
-    clue: "Face au phare, la pierre descellée révèle un chiffre romain. Traduis-le.",
-    media: "video",
-    reward: "Fragment de carte originelle",
+    x: 300,
+    y: 240,
   },
   {
     id: 5,
     index: "5/6",
-    title: "La Colline Sacrée",
-    place: "Massif de Bandia",
+    title: "Le Puits Sacré",
+    place: "Palais Royal de Diourbel",
+    story: "Une eau claire et mystérieuse qui, dit-on, donnait la sagesse à ceux qui savaient y lire le reflet des étoiles.",
+    clue: "Sur la margelle nord, sous la mousse sauvage qui cache le symbole de la royauté.",
+    media: "audio",
+    reward: "Parchemin de généalogie",
     status: "locked",
-    x: 35,
-    y: 74,
-    story: "Un sentier oublié mène au sommet où le vent murmure des noms.",
-    clue: "Résous d'abord l'énigme du Fort pour déverrouiller ce lieu.",
-    media: "image",
-    reward: "Amulette de bronze",
+    x: 140,
+    y: 310,
   },
   {
     id: 6,
     index: "6/6",
-    title: "Le Trésor de Langa Bouri",
-    place: "Grotte de la Falaise",
-    status: "locked",
-    x: 84,
-    y: 20,
-    story: "Le coffre final, gardé par la légende, attend l'aventurier digne.",
-    clue: "Réunis les cinq fragments pour tracer le chemin vers le trésor.",
+    title: "La Couronne Perdue",
+    place: "Ruines de Saint-Louis",
+    story: "L'insigne du pouvoir suprême, caché lors de la grande invasion pour ne jamais tomber entre les mains ennemies.",
+    clue: "Dans la clé de voûte de la grande arche de briques rouges, à l'entrée de la crypte.",
     media: "image",
-    reward: "Le Trésor de Langa Bouri",
+    reward: "Couronne sacrée (Badge Or)",
+    status: "locked",
+    x: 220,
+    y: 380,
   },
-]
-
-export type Player = {
-  rank: number
-  name: string
-  initials: string
-  time: string
-  fragments: number
-}
-
-export const leaderboard: Player[] = [
-  { rank: 1, name: "Aïssatou D.", initials: "AD", time: "02:14:07", fragments: 6 },
-  { rank: 2, name: "Mamadou S.", initials: "MS", time: "02:31:42", fragments: 6 },
-  { rank: 3, name: "Fatou N.", initials: "FN", time: "02:47:19", fragments: 6 },
-  { rank: 4, name: "Ousmane B.", initials: "OB", time: "03:02:55", fragments: 5 },
-  { rank: 5, name: "Khadija T.", initials: "KT", time: "03:18:30", fragments: 5 },
-  { rank: 6, name: "Ibrahima F.", initials: "IF", time: "03:40:11", fragments: 4 },
-  { rank: 7, name: "Awa C.", initials: "AC", time: "04:05:48", fragments: 4 },
-  { rank: 8, name: "Cheikh L.", initials: "CL", time: "04:22:03", fragments: 3 },
 ]
 
 export type UpcomingEvent = {
@@ -134,40 +114,171 @@ export type UpcomingEvent = {
   title: string
   location: string
   date: string
-  difficulty: "Facile" | "Intermédiaire" | "Expert"
   reward: string
   cover: string
 }
 
-export const upcomingEvents: UpcomingEvent[] = [
-  {
-    id: 1,
-    title: "Les Gardiens du Baobab",
-    location: "Sine-Saloum",
-    date: "12 Juillet 2026",
-    difficulty: "Facile",
-    reward: "Médaille de l'Explorateur",
-    cover: "/images/event-baobab.png",
-  },
-  {
-    id: 2,
-    title: "La Route des Pirogues",
-    location: "Delta du Saloum",
-    date: "26 Juillet 2026",
-    difficulty: "Intermédiaire",
-    reward: "Cauris d'Or + 500 pts",
-    cover: "/images/event-river.png",
-  },
-  {
-    id: 3,
-    title: "Le Secret du Fort",
-    location: "Île de Gorée",
-    date: "9 Août 2026",
-    difficulty: "Expert",
-    reward: "Carte au trésor originale",
-    cover: "/images/event-fort.png",
-  },
-]
+export const upcomingEventsByTheme: Record<string, UpcomingEvent[]> = {
+  culture: [
+    {
+      id: 1,
+      title: "Les Rituels du Masque Diola",
+      location: "Ziguinchor",
+      date: "15 Juillet 2026",
+      reward: "Médaille du Patrimoine",
+      cover: "/images/event-baobab.png",
+    },
+    {
+      id: 2,
+      title: "La Nuit des Contes sous le Baobab",
+      location: "Saly Portudal",
+      date: "28 Juillet 2026",
+      reward: "Cauris de Sagesse",
+      cover: "/images/event-river.png",
+    },
+    {
+      id: 3,
+      title: "La Cérémonie du Thé Secret",
+      location: "Saint-Louis",
+      date: "12 Août 2026",
+      reward: "Tasse de Ninki-Nanka",
+      cover: "/images/event-fort.png",
+    },
+  ],
+  sport: [
+    {
+      id: 1,
+      title: "Marathon des Dunes de Lompoul",
+      location: "Désert de Lompoul",
+      date: "19 Juillet 2026",
+      reward: "Trophée des Sables",
+      cover: "/images/event-river.png",
+    },
+    {
+      id: 2,
+      title: "Le Grand Combat des Lutteurs",
+      location: "Arène Nationale de Dakar",
+      date: "2 Août 2026",
+      reward: "Drapeau d'Honneur",
+      cover: "/images/event-baobab.png",
+    },
+    {
+      id: 3,
+      title: "Raid Nautique des Pirogues",
+      location: "Somone",
+      date: "23 Août 2026",
+      reward: "Pagaie de Bronze",
+      cover: "/images/event-fort.png",
+    },
+  ],
+  nature: [
+    {
+      id: 1,
+      title: "Exploration de la Réserve de Bandia",
+      location: "Sindia",
+      date: "24 Juillet 2026",
+      reward: "Badge de l'Éco-Garde",
+      cover: "/images/event-baobab.png",
+    },
+    {
+      id: 2,
+      title: "Piste de la Forêt de Casamance",
+      location: "Oussouye",
+      date: "7 Août 2026",
+      reward: "Fleur de Fromager",
+      cover: "/images/event-river.png",
+    },
+    {
+      id: 3,
+      title: "Le Sanctuaire des Oiseaux",
+      location: "Djoudj",
+      date: "30 Août 2026",
+      reward: "Plume de Pélican d'Or",
+      cover: "/images/event-fort.png",
+    },
+  ],
+  histoire: [
+    {
+      id: 1,
+      title: "Sur les Traces du Fort d'Estrées",
+      location: "Île de Gorée",
+      date: "14 Juillet 2026",
+      reward: "Clé du Fort Historique",
+      cover: "/images/event-fort.png",
+    },
+    {
+      id: 2,
+      title: "La Route du Comptoir Fluvial",
+      location: "Podor",
+      date: "3 Août 2026",
+      reward: "Parchemin d'Archives",
+      cover: "/images/event-river.png",
+    },
+    {
+      id: 3,
+      title: "Le Secret des Tombes Royales",
+      location: "Mbour",
+      date: "29 Août 2026",
+      reward: "Bague Sigillée en Cuivre",
+      cover: "/images/event-baobab.png",
+    },
+  ],
+  science: [
+    {
+      id: 1,
+      title: "Le Hackathon du Réseau Solaire",
+      location: "Diamniadio",
+      date: "20 Juillet 2026",
+      reward: "Puce d'Or Technologique",
+      cover: "/images/event-river.png",
+    },
+    {
+      id: 2,
+      title: "La Route du Code Perdu",
+      location: "Technopole de Dakar",
+      date: "9 Août 2026",
+      reward: "Badge du Cryptologue",
+      cover: "/images/event-baobab.png",
+    },
+    {
+      id: 3,
+      title: "Le Défi de l'Énergie Verte",
+      location: "Saint-Louis",
+      date: "6 Septembre 2026",
+      reward: "Diode de Platine",
+      cover: "/images/event-fort.png",
+    },
+  ],
+  gastronomie: [
+    {
+      id: 1,
+      title: "La Piste du Thiéboudienne Royal",
+      location: "Saint-Louis",
+      date: "18 Juillet 2026",
+      reward: "Marmite d'Or",
+      cover: "/images/event-fort.png",
+    },
+    {
+      id: 2,
+      title: "Le Secret du Ndambé Parfait",
+      location: "Rufisque",
+      date: "16 Août 2026",
+      reward: "Sachet d'Épices Secrètes",
+      cover: "/images/event-baobab.png",
+    },
+    {
+      id: 3,
+      title: "La Route du Café Touba",
+      location: "Touba",
+      date: "13 Septembre 2026",
+      reward: "Graine de Djar d'Or",
+      cover: "/images/event-river.png",
+    },
+  ],
+}
+
+// Fallback list mapping to culture for legacy imports
+export const upcomingEvents: UpcomingEvent[] = upcomingEventsByTheme.culture
 
 export type Achievement = {
   title: string
@@ -182,4 +293,20 @@ export const achievements: Achievement[] = [
   { title: "Gardien de l'Île", description: "Percer le secret du Fort", unlocked: false },
   { title: "Maître Griot", description: "Terminer une chasse complète", unlocked: false },
   { title: "Légende Vivante", description: "Entrer dans le top 3", unlocked: false },
+]
+
+export type Player = {
+  rank: number
+  initials: string
+  name: string
+  fragments: number
+  time: string
+}
+
+export const leaderboard: Player[] = [
+  { rank: 1, initials: "KD", name: "Khadim Diop", fragments: 6, time: "01:21:40" },
+  { rank: 2, initials: "FS", name: "Fatou Sow", fragments: 6, time: "01:28:15" },
+  { rank: 3, initials: "AM", name: "Amadou Mbacké", fragments: 6, time: "01:34:50" },
+  { rank: 4, initials: "BN", name: "Binta Ndiaye", fragments: 5, time: "01:45:12" },
+  { rank: 5, initials: "OS", name: "Ousmane Sy", fragments: 4, time: "01:52:08" },
 ]
