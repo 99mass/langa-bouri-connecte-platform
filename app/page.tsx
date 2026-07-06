@@ -555,8 +555,8 @@ function HeroBg() {
         <div key={i} className="absolute rounded-full bg-amber-400/25 animate-drift"
           style={{ left: p.x, top: p.y, width: p.s, height: p.s, animationDelay: p.d }} />
       ))}
-      {/* Transition gradient - subtle on mobile to prevent watch darkening */}
-      <div className="absolute bottom-0 left-0 right-0 h-12 sm:h-32 bg-gradient-to-t from-background to-transparent z-0" />
+      {/* Transition gradient - hidden on mobile to preserve dark contrast for watch icons */}
+      <div className="hidden sm:block absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-0" />
     </div>
   )
 }
@@ -616,7 +616,7 @@ export default function LandingPage() {
         </header>
 
         {/* Hero content — grid: text left, wheel right */}
-        <div className="relative z-10 mx-auto flex max-w-7xl flex-1 flex-col items-center gap-8 px-4 pb-10 pt-10 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12 lg:px-6 lg:pb-20 lg:pt-0">
+        <div className="relative z-10 mx-auto flex max-w-7xl flex-1 flex-col items-center gap-4 px-4 pb-4 pt-3 sm:pb-10 sm:pt-10 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12 lg:px-6 lg:pb-20 lg:pt-0">
 
           {/* Left column */}
           <div className="text-center lg:text-left flex flex-col items-center lg:items-start w-full max-w-2xl">
@@ -624,18 +624,18 @@ export default function LandingPage() {
               <QrCode className="h-3.5 w-3.5" /> Chasse au trésor numérique
             </span>
 
-            <h1 className="mt-6 text-balance font-heading text-4xl font-black leading-[1.08] sm:text-5xl lg:text-[3.5rem] xl:text-6xl">
+            <h1 className="mt-3 sm:mt-6 text-balance font-heading text-4xl font-black leading-[1.08] sm:text-5xl lg:text-[3.5rem] xl:text-6xl">
               <span className="gradient-text-gold">{GAME.title}</span>
             </h1>
 
-            <p className="mx-auto mt-5 max-w-lg text-pretty font-sans text-base leading-relaxed text-white/50 lg:mx-0 lg:text-lg">
+            <p className="hidden sm:block mx-auto mt-4 max-w-lg text-pretty font-sans text-base leading-relaxed text-white/50 lg:mx-0 lg:text-lg">
               L'adaptation numérique du jeu traditionnel sénégalais. Des QR codes, des énigmes, une aventure sur tous les terrains.
             </p>
 
-            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row justify-center lg:justify-start w-full">
+            <div className="mt-4 sm:mt-6 flex flex-col items-center gap-3 sm:flex-row justify-center lg:justify-start w-full">
               <Link id="hero-cta" href="/play"
                 className="shimmer group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-8 py-4 font-sans text-sm font-bold uppercase tracking-wider text-white shadow-[0_8px_32px_-4px_rgba(217,119,6,0.35)] transition-all hover:shadow-[0_12px_40px_rgba(217,119,6,0.45)] hover:scale-[1.02] active:scale-95">
-                Ouvrir la carte <MapIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                Commencer l'expédition <MapIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <button type="button" onClick={() => setShowContact(true)}
                 className="inline-flex items-center gap-2 rounded-full px-6 py-4 font-sans text-sm font-medium text-white/50 ring-1 ring-white/15 transition-all hover:text-white/80 hover:ring-white/30 hover:bg-white/[0.04]">
@@ -644,7 +644,7 @@ export default function LandingPage() {
             </div>
 
             {/* Stats - Grid 2x2 on mobile, Flex row on desktop */}
-            <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-6 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-10 sm:gap-y-3 lg:justify-start w-full max-w-[320px] sm:max-w-none mx-auto lg:mx-0">
+            <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-x-6 gap-y-6 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-10 sm:gap-y-3 lg:justify-start w-full max-w-[320px] sm:max-w-none mx-auto lg:mx-0">
               {stats.map((s, i) => (
                 <div key={s.label} className="flex flex-col items-center text-center sm:flex-row sm:items-center sm:gap-3 lg:justify-start">
                   {i > 0 && <span className="hidden text-white/[0.08] sm:block">|</span>}
@@ -662,7 +662,7 @@ export default function LandingPage() {
         </div>
 
         {/* Scroll cue */}
-        <div className="relative z-10 mx-auto mb-6 flex flex-col items-center gap-1 text-white/25">
+        <div className="relative z-10 mx-auto mb-2 sm:mb-6 flex flex-col items-center gap-1 text-white/25">
           <span className="font-sans text-[9px] uppercase tracking-[0.2em]">Découvrir</span>
           <ChevronDown className="h-4 w-4 animate-bounce" />
         </div>
