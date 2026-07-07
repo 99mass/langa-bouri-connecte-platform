@@ -579,11 +579,34 @@ const navLinks = [
 export default function LandingPage() {
   const [showContact, setShowContact] = useState(false)
   const { theme } = useTheme()
-  const activeEvents = upcomingEventsByTheme[theme.id] || upcomingEventsByTheme.culture
+  const [competitionsList, setCompetitionsList] = useState<any[]>([])
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("lb_competitions")
+      if (stored) {
+        setCompetitionsList(JSON.parse(stored))
+      } else {
+        import('@/lib/admin-data').then(({ competitions }) => {
+          setCompetitionsList(competitions)
+        })
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
+
+  const dbEvents = competitionsList.filter((c) => c.themeId === theme.id && (c.status === 'active' || c.status === 'brouillon'))
+  const staticEvents = upcomingEventsByTheme[theme.id] || upcomingEventsByTheme.culture || []
+  const uniqueStaticEvents = staticEvents.filter(se => !dbEvents.some(de => de.title.toLowerCase() === se.title.toLowerCase()))
+  const activeEvents = [...dbEvents, ...uniqueStaticEvents]
 
   const [adConfig, setAdConfig] = useState<any>(null)
   const [isAdVisible, setIsAdVisible] = useState(true)
   const [skipCountdown, setSkipCountdown] = useState(0)
+
+  const activeComp = competitionsList.find(c => c.status === 'active')
+  const ongoingSponsor = activeComp?.sponsorName || adConfig?.sponsorName
 
   useEffect(() => {
     try {
@@ -923,6 +946,11 @@ export default function LandingPage() {
                   alt={e.title}
                   className="h-full w-full object-cover"
                 />
+                {e.sponsorName && (
+                  <span className="absolute top-3 right-3 rounded-full bg-black/75 border border-amber-500/30 px-3 py-1 font-heading text-[8px] font-bold text-amber-400 uppercase tracking-widest backdrop-blur-sm shadow-md">
+                    Sponsor : {e.sponsorName}
+                  </span>
+                )}
               </div>
               <div className="p-5 flex-1 flex flex-col justify-between">
                 <div>
@@ -992,10 +1020,18 @@ export default function LandingPage() {
 
       {/* ═══════════ EVENT ═══════════ */}
       <Section className="py-12 lg:py-16">
-        <div className="modern-card mx-auto max-w-xl p-6 text-center lg:p-8">
+        <div className="modern-card mx-auto max-w-xl p-6 text-center lg:p-8 relative overflow-hidden">
+          <div className="absolute top-[-10px] right-[-10px] w-24 h-24 rounded-full bg-accent/5 blur-2xl pointer-events-none" />
           <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-ember">Événement en cours</span>
-          <h2 className="mt-2 font-heading text-xl font-bold text-primary sm:text-2xl">{GAME.event}</h2>
-          <p className="mt-1 font-sans text-sm text-muted-foreground">Le premier chapitre de la grande quête se termine bientôt.</p>
+          <h2 className="mt-2 font-heading text-xl font-bold text-primary sm:text-2xl">
+            {activeComp ? activeComp.title : GAME.event}
+          </h2>
+          {ongoingSponsor && (
+            <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3.5 py-1.5 font-heading text-[9px] font-black text-amber-500 uppercase tracking-widest border border-amber-500/25 shadow-sm">
+              <Sparkles className="h-3 w-3 animate-pulse" /> Sponsorisé par {ongoingSponsor}
+            </div>
+          )}
+          <p className="mt-2 font-sans text-sm text-muted-foreground">Le premier chapitre de la grande quête se termine bientôt.</p>
           <div className="my-5 h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
           <p className="mb-3 font-sans text-xs font-medium uppercase tracking-widest text-muted-foreground">Fin de la quête dans</p>
           <div className="flex justify-center"><Countdown /></div>

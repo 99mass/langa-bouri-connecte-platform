@@ -29,6 +29,7 @@ export type Competition = {
   participantsCount: number
   completedCount: number
   createdAt: string
+  sponsorName?: string
 }
 
 export const competitions: Competition[] = [

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Plus, MapPin, Trophy, Trash2, ChevronDown, ChevronUp, Image, Volume2, Video } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { THEMES } from '@/lib/theme-config'
@@ -60,6 +60,24 @@ function parseFromFrenchDate(frenchDate: string): string {
 
 export default function CompetitionForm({ competition, onSave, onClose }: CompetitionFormProps) {
   const isEdit = !!competition
+
+  const [partnersList, setPartnersList] = useState<any[]>([])
+  const [sponsorName, setSponsorName] = useState(competition?.sponsorName ?? '')
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("lb_partenaires")
+      if (stored) {
+        setPartnersList(JSON.parse(stored))
+      } else {
+        import('@/lib/admin-data').then(({ partenaires }) => {
+          setPartnersList(partenaires)
+        })
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
 
   const [title, setTitle] = useState(competition?.title ?? '')
   const [themeId, setThemeId] = useState<ThemeId>(competition?.themeId ?? 'culture')
@@ -175,6 +193,7 @@ export default function CompetitionForm({ competition, onSave, onClose }: Compet
       participantsCount: competition?.participantsCount ?? 0,
       completedCount: competition?.completedCount ?? 0,
       createdAt: competition?.createdAt ?? new Date().toISOString().slice(0, 10),
+      sponsorName
     }
 
     onSave(data)
@@ -254,17 +273,34 @@ export default function CompetitionForm({ competition, onSave, onClose }: Compet
             </div>
           </div>
 
-          {/* Localisation */}
-          <div>
-            <label className={labelClass}>Localisation</label>
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className={inputClass}
-              placeholder="Ex: Saint-Louis, Sénégal"
-              required
-            />
+          {/* Localisation & Sponsor */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>Localisation</label>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className={inputClass}
+                placeholder="Ex: Saint-Louis, Sénégal"
+                required
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Sponsor de la Compétition</label>
+              <select
+                value={sponsorName}
+                onChange={(e) => setSponsorName(e.target.value)}
+                className={inputClass}
+              >
+                <option value="">Aucun sponsor</option>
+                {partnersList.map((p) => (
+                  <option key={p.id} value={p.name || p.org}>
+                    {p.name || p.org} ({p.type})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Date & Heure de Début */}

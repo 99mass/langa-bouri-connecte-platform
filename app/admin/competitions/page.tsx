@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Pencil, Trash2, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { competitions as initialCompetitions } from '@/lib/admin-data'
@@ -23,12 +23,32 @@ const selectClass =
   'rounded-lg border border-border bg-background px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent/50'
 
 export default function AdminCompetitionsPage() {
-  const [list, setList] = useState<Competition[]>(initialCompetitions)
+  const [list, setList] = useState<Competition[]>([])
   const [editing, setEditing] = useState<Competition | null>(null)
   const [showForm, setShowForm] = useState(false)
 
   const [statusFilter, setStatusFilter] = useState<CompetitionStatus | 'all'>('all')
   const [themeFilter, setThemeFilter] = useState<ThemeId | 'all'>('all')
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("lb_competitions")
+      if (stored) {
+        setList(JSON.parse(stored))
+      } else {
+        localStorage.setItem("lb_competitions", JSON.stringify(initialCompetitions))
+        setList(initialCompetitions)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
+
+  function saveList(newList: Competition[]) {
+    setList(newList)
+    localStorage.setItem("lb_competitions", JSON.stringify(newList))
+    window.dispatchEvent(new Event('storage'))
+  }
 
   /* ── Filtering ── */
   const filtered = list.filter((c) => {
@@ -45,7 +65,7 @@ export default function AdminCompetitionsPage() {
 
   function handleDelete(comp: Competition) {
     if (window.confirm(`Supprimer « ${comp.title} » ? Cette action est irréversible.`)) {
-      setList((prev) => prev.filter((c) => c.id !== comp.id))
+      saveList(list.filter((c) => c.id !== comp.id))
     }
   }
 
@@ -55,11 +75,13 @@ export default function AdminCompetitionsPage() {
   }
 
   function handleSave(data: Competition) {
+    let nextList: Competition[] = []
     if (editing) {
-      setList((prev) => prev.map((c) => (c.id === editing.id ? data : c)))
+      nextList = list.map((c) => (c.id === editing.id ? data : c))
     } else {
-      setList((prev) => [...prev, data])
+      nextList = [...list, data]
     }
+    saveList(nextList)
     setShowForm(false)
     setEditing(null)
   }

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import {
   CalendarDays,
   Gift,
@@ -16,7 +17,27 @@ export function Challenges({
   onSelect: (f: Fragment) => void
 }) {
   const { theme } = useTheme()
-  const events = upcomingEventsByTheme[theme.id] || upcomingEventsByTheme.culture
+  const [competitionsList, setCompetitionsList] = useState<any[]>([])
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("lb_competitions")
+      if (stored) {
+        setCompetitionsList(JSON.parse(stored))
+      } else {
+        import('@/lib/admin-data').then(({ competitions }) => {
+          setCompetitionsList(competitions)
+        })
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
+
+  const dbEvents = competitionsList.filter((c) => c.themeId === theme.id && (c.status === 'active' || c.status === 'brouillon'))
+  const staticEvents = upcomingEventsByTheme[theme.id] || upcomingEventsByTheme.culture || []
+  const uniqueStaticEvents = staticEvents.filter(se => !dbEvents.some(de => de.title.toLowerCase() === se.title.toLowerCase()))
+  const events = [...dbEvents, ...uniqueStaticEvents]
 
   return (
     <div className="mx-auto max-w-md px-4 pb-28 pt-4">
@@ -42,6 +63,11 @@ export function Challenges({
                 alt={e.title}
                 className="h-full w-full object-cover"
               />
+              {e.sponsorName && (
+                <span className="absolute top-3 right-3 rounded-full bg-black/75 border border-amber-500/30 px-3 py-1 font-heading text-[8px] font-bold text-amber-400 uppercase tracking-widest backdrop-blur-sm shadow-md">
+                  Sponsor : {e.sponsorName}
+                </span>
+              )}
             </div>
             <div className="p-4 bg-card/50">
               <h2 className="font-heading text-lg font-bold text-primary">
