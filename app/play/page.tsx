@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
+import { ChevronLeft, QrCode } from "lucide-react"
 import { BottomNav, type Tab } from "@/components/lb/bottom-nav"
 import { MapDashboard } from "@/components/lb/map-dashboard"
 import { Challenges } from "@/components/lb/challenges"
@@ -10,22 +10,51 @@ import { Ranking } from "@/components/lb/ranking"
 import { Profile } from "@/components/lb/profile"
 import { ChallengeDetail } from "@/components/lb/challenge-detail"
 import { AuthModal } from "@/components/lb/auth-modal"
+import { QrScannerModal } from "@/components/lb/qr-scanner-modal"
 import { useTheme } from "@/lib/theme-context"
 import { ThemeIcon } from "@/components/lb/theme-icon"
 import { GAME, fragments as initialFragments, type Fragment } from "@/lib/game-data"
 import { cn } from "@/lib/utils"
 
-function useElapsed() {
-  const [start] = useState(() => Date.now() - (1 * 3600000 + 12 * 60000))
-  const [now, setNow] = useState(start)
+function useElapsed(isAuthed: boolean, isCompleted: boolean) {
+  const [seconds, setSeconds] = useState(0)
+  
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000)
+    if (!isAuthed) {
+      setSeconds(0)
+      localStorage.removeItem("lb_timer_start")
+      localStorage.removeItem("lb_timer_stopped_seconds")
+      return
+    }
+
+    const savedStopped = localStorage.getItem("lb_timer_stopped_seconds")
+    if (savedStopped) {
+      setSeconds(Number(savedStopped))
+      return
+    }
+
+    let start = Number(localStorage.getItem("lb_timer_start"))
+    if (!start) {
+      start = Date.now()
+      localStorage.setItem("lb_timer_start", String(start))
+    }
+
+    if (isCompleted) {
+      const finalSecs = Math.floor((Date.now() - start) / 1000)
+      setSeconds(finalSecs)
+      localStorage.setItem("lb_timer_stopped_seconds", String(finalSecs))
+      return
+    }
+
+    const id = setInterval(() => {
+      setSeconds(Math.floor((Date.now() - start) / 1000))
+    }, 1000)
     return () => clearInterval(id)
-  }, [])
-  const s  = Math.floor((now - start) / 1000)
-  const hh = String(Math.floor(s / 3600)).padStart(2, "0")
-  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0")
-  const ss = String(s % 60).padStart(2, "0")
+  }, [isAuthed, isCompleted])
+
+  const hh = String(Math.floor(seconds / 3600)).padStart(2, "0")
+  const mm = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0")
+  const ss = String(seconds % 60).padStart(2, "0")
   return `${hh}:${mm}:${ss}`
 }
 
@@ -36,8 +65,60 @@ export default function PlayPage() {
   const [showAuth, setShowAuth] = useState(false)
   const [isAuthed, setIsAuthed] = useState(false)
   const [nickname, setNickname] = useState(GAME.player)
+  const [showMapScanner, setShowMapScanner] = useState(false)
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
   const { theme, setTheme, themeId } = useTheme()
-  const elapsed = useElapsed()
+  
+  const isCompleted = fragmentList.filter((f) => f.status === "completed").length === GAME.totalFragments
+  const elapsed = useElapsed(isAuthed, isCompleted)
+
+  const activeFragment = fragmentList.find((f) => f.status === "active")
+
+  // Load state from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedAuthed = localStorage.getItem("lb_isAuthed")
+      const savedNickname = localStorage.getItem("lb_nickname")
+      const savedFragments = localStorage.getItem("lb_fragments")
+
+      if (savedAuthed === "true") {
+        setIsAuthed(true)
+      }
+      if (savedNickname) {
+        setNickname(savedNickname)
+      }
+      if (savedFragments) {
+        try {
+          setFragmentList(JSON.parse(savedFragments))
+        } catch (e) {
+          console.error("Failed to parse saved fragments", e)
+        }
+      }
+    }
+  }, [])
+
+  // Sync state to localStorage on changes
+  useEffect(() => {
+    localStorage.setItem("lb_isAuthed", String(isAuthed))
+  }, [isAuthed])
+
+  useEffect(() => {
+    localStorage.setItem("lb_nickname", nickname)
+  }, [nickname])
+
+  useEffect(() => {
+    localStorage.setItem("lb_fragments", JSON.stringify(fragmentList))
+  }, [fragmentList])
+
+  function handleDisconnect() {
+    setIsAuthed(false)
+    setNickname(GAME.player)
+    localStorage.removeItem("lb_isAuthed")
+    localStorage.removeItem("lb_nickname")
+    localStorage.removeItem("lb_fragments")
+    localStorage.removeItem("lb_timer_start")
+    setFragmentList(initialFragments)
+  }
 
   const found = fragmentList.filter((f) => f.status === "completed").length
 
@@ -128,6 +209,12 @@ export default function PlayPage() {
           <div className="flex flex-col items-start gap-1">
             <Link
               href="/"
+              onClick={(e) => {
+                if (isAuthed) {
+                  e.preventDefault()
+                  setShowExitConfirm(true)
+                }
+              }}
               className="flex items-center gap-1 font-sans text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -184,6 +271,7 @@ export default function PlayPage() {
               nickname={nickname}
               elapsed={elapsed}
               onSelect={setSelected}
+              isAuthed={isAuthed}
             />
           </div>
         )}
@@ -194,8 +282,32 @@ export default function PlayPage() {
           />
         )}
         {tab === "ranking"    && <Ranking />}
-        {tab === "profile"    && <Profile nickname={nickname} />}
+        {tab === "profile"    && (
+          <Profile
+            nickname={nickname}
+            isAuthed={isAuthed}
+            onConnect={() => setShowAuth(true)}
+            onDisconnect={handleDisconnect}
+          />
+        )}
       </main>
+
+      {/* Floating Action Button (FAB) for scanning QR codes - only on map tab when a challenge is active */}
+      {tab === "map" && activeFragment && (
+        <button
+          type="button"
+          onClick={() => {
+            if (!isAuthed) {
+              setShowAuth(true)
+            } else {
+              setShowMapScanner(true)
+            }
+          }}
+          className="absolute bottom-32 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/35 hover:scale-105 active:scale-95 transition-all cursor-pointer border border-amber-400/20"
+        >
+          <QrCode className="h-6 w-6" />
+        </button>
+      )}
 
       {/* ── Bottom Nav (Z-Index layer floating on top of background) ── */}
       <BottomNav active={tab} onChange={setTab} />
@@ -219,6 +331,55 @@ export default function PlayPage() {
             setShowAuth(false)
           }}
         />
+      )}
+
+      {showMapScanner && activeFragment && (
+        <QrScannerModal
+          title={activeFragment.title}
+          onScanSuccess={() => {
+            handleCompleteFragment(activeFragment.id)
+            setShowMapScanner(false)
+          }}
+          onClose={() => setShowMapScanner(false)}
+          isLast={activeFragment.id === fragmentList[fragmentList.length - 1].id}
+        />
+      )}
+
+      {showExitConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-fade-in">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+          
+          {/* Box */}
+          <div className="parchment wood-frame relative z-10 w-full max-w-sm rounded-2xl p-6 text-center shadow-2xl animate-scale-up">
+            <h3 className="font-heading text-base font-black uppercase tracking-wider text-primary mb-2">
+              Quitter l'expédition ?
+            </h3>
+            <p className="font-serif text-[11px] italic leading-relaxed text-muted-foreground mb-5">
+              Votre progression est sauvegardée dans votre journal d'aventurier. Vous pourrez reprendre votre quête à tout moment.
+            </p>
+            
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowExitConfirm(false)}
+                className="flex-1 rounded-full border border-border/40 bg-secondary/15 py-2.5 font-heading text-[10px] font-bold uppercase tracking-wider text-primary hover:bg-secondary/35 active:scale-95 transition-all cursor-pointer"
+              >
+                Rester
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowExitConfirm(false)
+                  window.location.href = "/"
+                }}
+                className="flex-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 py-2.5 font-heading text-[10px] font-bold uppercase tracking-wider text-white shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+              >
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

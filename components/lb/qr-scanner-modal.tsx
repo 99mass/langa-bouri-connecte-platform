@@ -8,10 +8,12 @@ export function QrScannerModal({
   title,
   onScanSuccess,
   onClose,
+  isLast = false,
 }: {
   title: string
   onScanSuccess: () => void
   onClose: () => void
+  isLast?: boolean
 }) {
   const [scanning, setScanning] = useState(true)
   const [success, setSuccess] = useState(false)
@@ -19,6 +21,18 @@ export function QrScannerModal({
   const [hasCamera, setHasCamera] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
+
+  // Randomized emojis for celebration rain (simpler, prettier)
+  const [celebrationItems] = useState(() =>
+    Array.from({ length: 15 }).map((_, i) => ({
+      id: i,
+      emoji: ["🎁", "🎉", "✨", "🏆", "🌟", "👑"][i % 6],
+      left: `${Math.random() * 80 + 10}%`,
+      delay: `${Math.random() * 1.5}s`,
+      duration: `${Math.random() * 1.2 + 2}s`,
+      size: `${Math.random() * 8 + 12}px`,
+    }))
+  )
 
   // Request actual camera stream on mount
   useEffect(() => {
@@ -52,20 +66,28 @@ export function QrScannerModal({
     }
   }, [])
 
-  // Close scanner and report success to page state
+  // Close scanner and report success to page state (2.0s for the winner screen)
   useEffect(() => {
     if (success) {
       const closeTimer = setTimeout(() => {
         onScanSuccess()
-      }, 1500)
+      }, 2000)
       return () => clearTimeout(closeTimer)
     }
   }, [success, onScanSuccess])
 
+  function handleCloseClick() {
+    if (success) {
+      onScanSuccess()
+    } else {
+      onClose()
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Scanner de QR Code">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={handleCloseClick} />
 
       {/* Screen flash visual effect on scan success */}
       <div
@@ -86,7 +108,7 @@ export function QrScannerModal({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleCloseClick}
             className="rounded-full p-1 text-white/40 hover:bg-white/10 hover:text-white transition-colors"
             aria-label="Fermer le scanner"
           >
@@ -133,14 +155,53 @@ export function QrScannerModal({
               </div>
             </>
           ) : (
-            /* Success state overlay */
-            <div className="flex flex-col items-center gap-3 animate-seal-in z-20">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-400/10 ring-2 ring-amber-400/40">
-                <CheckCircle2 className="h-9 w-9 text-amber-400" />
+            /* Success state overlay with raining gifts & confetti - simplified & prettier */
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/95 backdrop-blur-md overflow-hidden z-20">
+              {/* Confetti / Gifts rain */}
+              <style>{`
+                @keyframes confetti-rain {
+                  0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+                  10% { opacity: 1; }
+                  90% { opacity: 1; }
+                  100% { transform: translateY(320px) rotate(360deg); opacity: 0; }
+                }
+                .confetti-item {
+                  position: absolute;
+                  top: -20px;
+                  animation: confetti-rain linear infinite;
+                  pointer-events: none;
+                }
+              `}</style>
+              
+              {celebrationItems.map((item) => (
+                <span
+                  key={item.id}
+                  className="confetti-item"
+                  style={{
+                    left: item.left,
+                    animationDelay: item.delay,
+                    animationDuration: item.duration,
+                    fontSize: item.size,
+                  }}
+                >
+                  {item.emoji}
+                </span>
+              ))}
+
+              <div className="flex flex-col items-center gap-3 animate-scale-up text-center px-6">
+                <CheckCircle2 className="h-14 w-14 text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)] animate-bounce" />
+                
+                <div className="mt-2">
+                  <h4 className="font-heading text-base font-black uppercase tracking-wider text-primary">
+                    {isLast ? "Quête Complétée ! 🏆" : "Code Validé !"}
+                  </h4>
+                  <p className="font-serif text-[11px] italic text-muted-foreground mt-1 max-w-[220px] leading-relaxed">
+                    {isLast 
+                      ? "Vous avez triomphé de l'expédition et débloqué le Trésor Final."
+                      : "L'étape a été enregistrée dans votre journal."}
+                  </p>
+                </div>
               </div>
-              <span className="font-heading text-sm font-bold uppercase tracking-widest text-amber-300">
-                Code Validé !
-              </span>
             </div>
           )}
         </div>

@@ -5,6 +5,8 @@ export type Game = {
   event: string
   player: string
   totalFragments: number
+  treasureLockedImage: string
+  treasureUnlockedImage: string
 }
 
 export const GAME: Game = {
@@ -12,6 +14,8 @@ export const GAME: Game = {
   event: "L'Héritage de Ndiadiane",
   player: "Explorateur Anonyme",
   totalFragments: 6,
+  treasureLockedImage: "/images/treasure_locked.jpg",
+  treasureUnlockedImage: "/images/treasure_unlocked.jpg",
 }
 
 export type Fragment = {
@@ -38,7 +42,7 @@ export const fragments: Fragment[] = [
     clue: "Cherchez la branche orientée vers le couchant, là où le soleil touche la terre à l'équinoxe.",
     media: "audio",
     reward: "Fiole de parfum d'ambre",
-    status: "completed",
+    status: "active",
     x: 100,
     y: 60,
   },
@@ -50,8 +54,8 @@ export const fragments: Fragment[] = [
     story: "Les pirogues de guerre traversaient ce bras de mer pour ravitailler le fort en cas de siège secret.",
     clue: "Près de l'embarcadère en bois flotté, sous la troisième lanterne de cuivre.",
     media: "image",
-    reward: "Pendentif en cauris vernis",
-    status: "completed",
+    reward: "",
+    status: "locked",
     x: 240,
     y: 110,
   },
@@ -61,10 +65,10 @@ export const fragments: Fragment[] = [
     title: "Le Marché aux Épices",
     place: "Cité de Kaolack",
     story: "Un carrefour de senteurs et de couleurs où les marchands de tout le continent s'échangeaient de l'or contre des secrets parfumés.",
-    clue: "Derrière l'étal du vendeur de piment rouge, contre le mur de briques crues.",
+    clue: "Derrière l'étal du vendeur de piment rouge, contre le mar de briques crues.",
     media: "video",
     reward: "Sachet de gingembre rare",
-    status: "completed",
+    status: "locked",
     x: 80,
     y: 180,
   },
@@ -77,7 +81,7 @@ export const fragments: Fragment[] = [
     clue: "Dans l'embrasure de la canonnière faisant face à l'est, gravé dans la pierre volcanique.",
     media: "image",
     reward: "Boussole en laiton gravé",
-    status: "active",
+    status: "locked",
     x: 300,
     y: 240,
   },
@@ -89,7 +93,7 @@ export const fragments: Fragment[] = [
     story: "Une eau claire et mystérieuse qui, dit-on, donnait la sagesse à ceux qui savaient y lire le reflet des étoiles.",
     clue: "Sur la margelle nord, sous la mousse sauvage qui cache le symbole de la royauté.",
     media: "audio",
-    reward: "Parchemin de généalogie",
+    reward: "Aucune",
     status: "locked",
     x: 140,
     y: 310,

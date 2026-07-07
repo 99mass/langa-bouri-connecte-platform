@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Eye,
   Gift,
@@ -40,6 +40,13 @@ export function ChallengeDetail({
 
   const isActive = fragment.status === "active"
   const isCompleted = fragment.status === "completed"
+
+  // Automatically reveal the clue if the user successfully connects
+  useEffect(() => {
+    if (isAuthed) {
+      setRevealed(true)
+    }
+  }, [isAuthed])
 
   function handleReveal() {
     if (!isAuthed) {
@@ -156,19 +163,21 @@ export function ChallengeDetail({
             </section>
 
             {/* Reward */}
-            <div className="mt-5 flex items-center gap-3 rounded-2xl bg-muted/50 px-4 py-3 ring-1 ring-border/40">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/10">
-                <Gift className="h-5 w-5 text-accent" />
+            {fragment.reward && fragment.reward !== "Aucune" && fragment.reward.trim() !== "" && (
+              <div className="mt-5 flex items-center gap-3 rounded-2xl bg-muted/50 px-4 py-3 ring-1 ring-border/40">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/10">
+                  <Gift className="h-5 w-5 text-accent" />
+                </div>
+                <div>
+                  <p className="font-sans text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Récompense
+                  </p>
+                  <p className="font-sans text-xs font-bold text-primary">
+                    {fragment.reward}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-sans text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Récompense
-                </p>
-                <p className="font-sans text-xs font-bold text-primary">
-                  {fragment.reward}
-                </p>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Action buttons */}
@@ -178,14 +187,12 @@ export function ChallengeDetail({
                 Défi complété avec succès !
               </div>
             ) : isActive && revealed ? (
-              <button
-                type="button"
-                onClick={handleOpenScanner}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 py-3.5 font-sans text-xs font-bold uppercase tracking-wider text-white shadow-md transition-transform hover:scale-[1.01] active:scale-[0.98]"
-              >
-                <QrCode className="h-4.5 w-4.5" />
-                Scanner le QR Code physique
-              </button>
+              <div className="flex flex-col items-center gap-1.5 text-center py-2 px-4">
+                <span className="font-heading text-xs font-bold text-amber-600 uppercase tracking-wide">Défi Actif</span>
+                <p className="font-serif text-[11px] italic text-muted-foreground flex items-center justify-center gap-1">
+                  Utilisez le scanner <QrCode className="h-3 w-3 inline text-accent" /> en bas à droite de la carte pour valider.
+                </p>
+              </div>
             ) : (
               <button
                 type="button"
@@ -199,15 +206,6 @@ export function ChallengeDetail({
           </div>
         </div>
       </div>
-
-      {/* QR Scanner overlay */}
-      {showScanner && (
-        <QrScannerModal
-          title={fragment.title}
-          onScanSuccess={handleScanSuccess}
-          onClose={() => setShowScanner(false)}
-        />
-      )}
     </>
   )
 }

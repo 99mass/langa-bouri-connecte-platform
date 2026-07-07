@@ -1,13 +1,55 @@
 "use client"
 
 import { useState } from "react"
-import { Award, Check, Fingerprint, Lock, MapPin, Stamp, ChevronDown, ChevronUp, Sparkles } from "lucide-react"
+import { Award, Check, Fingerprint, Lock, MapPin, Stamp, ChevronDown, ChevronUp, Sparkles, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { GAME, achievements, fragments } from "@/lib/game-data"
 
-export function Profile({ nickname }: { nickname: string }) {
+export function Profile({
+  nickname,
+  isAuthed = false,
+  onConnect,
+  onDisconnect,
+}: {
+  nickname: string
+  isAuthed?: boolean
+  onConnect?: () => void
+  onDisconnect?: () => void
+}) {
   const found = fragments.filter((f) => f.status === "completed").length
   const progress = Math.round((found / GAME.totalFragments) * 100)
+
+  if (!isAuthed) {
+    return (
+      <div className="mx-auto max-w-md px-4 pb-28 pt-10 flex flex-col items-center justify-center min-h-[60dvh] text-center select-none">
+        <div className="parchment wood-frame relative overflow-hidden rounded-xl p-8 flex flex-col items-center w-full shadow-lg">
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-wood/40 ring-2 ring-accent/60 text-accent mb-6">
+            <Lock className="h-10 w-10" strokeWidth={1.5} />
+          </div>
+
+          <h1 className="font-heading text-lg font-black text-primary uppercase tracking-wider mb-2">
+            Journal Sécurisé
+          </h1>
+
+          <p className="font-serif text-sm italic leading-relaxed text-muted-foreground mb-6">
+            Pour sauvegarder vos fragments trouvés, suivre votre classement en temps réel et débloquer vos badges d'expédition, vous devez vous identifier.
+          </p>
+
+          <button
+            type="button"
+            onClick={onConnect}
+            className="w-full flex items-center justify-center gap-2 rounded-full bg-wood py-3.5 px-6 font-heading text-xs font-bold uppercase tracking-widest text-accent ring-2 ring-accent/70 transition-all hover:scale-[1.02] active:scale-95 shadow-md cursor-pointer"
+          >
+            Se connecter
+          </button>
+
+          <p className="mt-4 font-serif text-[10px] italic text-muted-foreground/60">
+            Gratuit, sécurisé et sans installation.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   // Expand/collapse state for event cards
   const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>({
@@ -200,7 +242,7 @@ export function Profile({ nickname }: { nickname: string }) {
                             {c.name}
                           </p>
                           <p className="font-serif text-[10px] italic text-muted-foreground truncate">
-                            {c.solved ? c.reward : c.place}
+                            {c.solved && c.reward && c.reward !== "Aucune" && c.reward.trim() !== "" ? c.reward : c.place}
                           </p>
                         </div>
 
@@ -218,44 +260,19 @@ export function Profile({ nickname }: { nickname: string }) {
         </div>
       </section>
 
-      {/* Achievements */}
-      <section className="mt-6">
-        <h2 className="mb-3 font-heading text-sm font-bold uppercase tracking-widest text-primary">
-          Trophées
-        </h2>
-        <ul className="grid grid-cols-2 gap-2">
-          {achievements.map((a) => (
-            <li
-              key={a.title}
-              className={cn(
-                "gold-frame flex flex-col gap-1 rounded-lg p-3",
-                a.unlocked ? "parchment" : "bg-muted/60 opacity-70",
-              )}
-            >
-              <span
-                className={cn(
-                  "flex h-9 w-9 items-center justify-center rounded-full ring-1",
-                  a.unlocked
-                    ? "bg-wood text-accent ring-accent/50"
-                    : "bg-muted text-muted-foreground ring-border",
-                )}
-              >
-                {a.unlocked ? (
-                  <Award className="h-4 w-4" />
-                ) : (
-                  <Lock className="h-4 w-4" />
-                )}
-              </span>
-              <p className="font-heading text-sm font-bold leading-tight text-primary">
-                {a.title}
-              </p>
-              <p className="font-serif text-xs italic leading-snug text-muted-foreground">
-                {a.description}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {/* Disconnect Button */}
+      {onDisconnect && (
+        <div className="mt-8 flex justify-center">
+          <button
+            type="button"
+            onClick={onDisconnect}
+            className="flex items-center gap-2 rounded-full border border-border/40 bg-secondary/10 px-6 py-2.5 font-sans text-xs font-semibold text-muted-foreground hover:bg-destructive/5 hover:text-destructive hover:border-destructive/20 transition-all active:scale-95 cursor-pointer"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Se déconnecter
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -610,7 +610,7 @@ export default function LandingPage() {
             </button>
             <Link href="/play"
               className="flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-2 font-sans text-xs font-bold uppercase tracking-wider text-white shadow-[0_4px_20px_-4px_rgba(217,119,6,0.4)] transition-all hover:shadow-[0_6px_28px_-4px_rgba(217,119,6,0.55)] hover:scale-[1.03] active:scale-95">
-              <Play className="h-3.5 w-3.5" /> Jouer
+              <Play className="h-3.5 w-3.5" /> Commencer
             </Link>
           </div>
         </header>
@@ -918,7 +918,7 @@ export default function LandingPage() {
       <div className="fixed bottom-6 right-4 z-50 lg:hidden">
         <Link href="/play"
           className="flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-3 font-sans text-xs font-bold uppercase tracking-wider text-white shadow-xl transition-transform hover:scale-105 active:scale-95">
-          <Sparkles className="h-4 w-4" /> Jouer
+          <Sparkles className="h-4 w-4" /> Commencer
         </Link>
       </div>
 

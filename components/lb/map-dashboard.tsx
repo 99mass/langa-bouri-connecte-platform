@@ -159,15 +159,45 @@ function Connector({ from, to, completed }: { from: number; to: number; complete
         <path
           d={`M ${startX} 0 C ${startX} 24, ${endX} 24, ${endX} 48`}
           fill="none"
-          stroke={completed ? "var(--accent)" : "var(--border)"}
-          strokeWidth="4.5"
-          strokeDasharray={completed ? "none" : "5 7"}
+          stroke={completed ? "var(--accent)" : "color-mix(in oklch, var(--primary) 30%, transparent)"}
+          strokeWidth={completed ? "5.5" : "4"}
+          strokeDasharray={completed ? "none" : "5 6"}
           strokeLinecap="round"
-          opacity={completed ? 0.65 : 0.25}
+          opacity={completed ? 0.95 : 0.55}
         />
       </svg>
     </div>
   )
+}
+
+/* ═══════════════════════════════════════════
+   Treasure images mapped by theme/category
+   ═══════════════════════════════════════════ */
+const themeTreasureImages: Record<string, { locked: string; unlocked: string }> = {
+  culture: {
+    locked: "/images/treasure_locked.jpg",
+    unlocked: "/images/treasure_unlocked.jpg",
+  },
+  sport: {
+    locked: "/images/treasure_locked.jpg",
+    unlocked: "/images/treasure_unlocked_sport.jpg",
+  },
+  nature: {
+    locked: "/images/treasure_locked.jpg",
+    unlocked: "/images/event-baobab.png",
+  },
+  histoire: {
+    locked: "/images/treasure_locked.jpg",
+    unlocked: "/images/clue-artifact.png",
+  },
+  science: {
+    locked: "/images/treasure_locked.jpg",
+    unlocked: "/images/ancient-map.png",
+  },
+  gastronomie: {
+    locked: "/images/treasure_locked.jpg",
+    unlocked: "/images/event-river.png",
+  },
 }
 
 /* ═══════════════════════════════════════════
@@ -178,16 +208,23 @@ export function MapDashboard({
   nickname,
   elapsed,
   onSelect,
+  isAuthed = false,
 }: {
   fragments: Fragment[]
   nickname: string
   elapsed: string
   onSelect: (f: Fragment) => void
+  isAuthed?: boolean
 }) {
-  const { theme } = useTheme()
+  const { theme, themeId } = useTheme()
   const found     = fragments.filter((f) => f.status === "completed").length
   const remaining = GAME.totalFragments - found
   const progress  = Math.round((found / GAME.totalFragments) * 100)
+  const isUnlockedQuest = isAuthed && remaining === 0
+
+  const themeImages = themeTreasureImages[themeId] || themeTreasureImages.culture
+  const lockedImg = themeImages.locked
+  const unlockedImg = themeImages.unlocked
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const pathPositions = fragments.map((_, i) => getPathX(i))
@@ -238,19 +275,49 @@ export function MapDashboard({
         </div>
 
         {/* ── Treasure at the end ── */}
-        <div className="relative z-10 mx-auto mt-8 w-[80%] max-w-[240px]">
-          <div
-            className="flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed px-4 py-5 text-center bg-card/75 backdrop-blur-sm"
-            style={{
-              borderColor: "color-mix(in oklch, var(--gold) 30%, var(--border))",
-            }}
-          >
-            <Crown className="h-7 w-7 text-gold animate-float" strokeWidth={1.25} />
-            <p className="font-heading text-xs font-bold text-primary">Le Trésor Final</p>
-            <p className="font-sans text-[10px] text-muted-foreground leading-normal">
-              Résous tous les défis pour déverrouiller la récompense ultime
-            </p>
-          </div>
+        <div className="relative z-10 mx-auto mt-10 w-[85%] max-w-[260px] animate-fade-in">
+          {isUnlockedQuest ? (
+            /* Unlocked Treasure Card Design */
+            <div
+              className="flex flex-col items-center rounded-2xl border-2 p-4 text-center bg-card/95 backdrop-blur-sm shadow-[0_8px_32px_rgba(217,119,6,0.12)] ring-1 ring-amber-500/10"
+              style={{
+                borderColor: "var(--gold)",
+              }}
+            >
+              <img
+                src={unlockedImg}
+                alt="Trésor Déverrouillé"
+                className="w-full h-32 object-cover rounded-xl border border-amber-400/20 mb-3 shadow-sm animate-float"
+              />
+              <Crown className="h-5 w-5 text-amber-600 mb-1" strokeWidth={2} />
+              <p className="font-heading text-xs font-black text-amber-600 uppercase tracking-wider">
+                Quête Complétée ! 🏆
+              </p>
+              <p className="font-serif text-[10px] leading-relaxed text-primary mt-2 px-1">
+                Félicitations aventurier, vous avez triomphé de l'expédition et débloqué le Trésor d'une valeur inestimable !
+              </p>
+            </div>
+          ) : (
+            /* Locked Treasure Card Design */
+            <div
+              className="flex flex-col items-center rounded-2xl border border-dashed p-4 text-center bg-card/65 backdrop-blur-sm"
+              style={{
+                borderColor: "color-mix(in oklch, var(--gold) 20%, var(--border))",
+              }}
+            >
+              <img
+                src={lockedImg}
+                alt="Trésor Verrouillé"
+                className="w-full h-24 object-cover rounded-xl opacity-35 grayscale mb-3"
+              />
+              <p className="font-heading text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                Le Trésor Final
+              </p>
+              <p className="font-serif text-[9px] leading-normal text-muted-foreground/60 mt-1 max-w-[200px]">
+                Résolvez tous les défis pour déverrouiller la récompense ultime.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
