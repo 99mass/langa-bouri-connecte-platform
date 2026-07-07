@@ -39,6 +39,7 @@ import { GAME, upcomingEventsByTheme } from "@/lib/game-data"
 import { THEMES } from "@/lib/theme-config"
 import { useTheme } from "@/lib/theme-context"
 import { cn } from "@/lib/utils"
+import MediaRenderer from "@/components/lb/media-renderer"
 
 /* ── Domain icon map ── */
 const domainIcons: Record<string, React.ComponentType<LucideProps>> = {
@@ -580,6 +581,45 @@ export default function LandingPage() {
   const { theme } = useTheme()
   const activeEvents = upcomingEventsByTheme[theme.id] || upcomingEventsByTheme.culture
 
+  const [adConfig, setAdConfig] = useState<any>(null)
+  const [isAdVisible, setIsAdVisible] = useState(true)
+  const [skipCountdown, setSkipCountdown] = useState(0)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("lb_sponsoring_campaigns")
+      if (stored) {
+        const list = JSON.parse(stored)
+        const active = list.find((c: any) => c.isActive)
+        if (active && active.landing?.enabled) {
+          setAdConfig(active)
+          if (active.landing.displayMode === 'fullscreen') {
+            setSkipCountdown(active.skipDuration)
+            if (active.skipDuration > 0) {
+              const interval = setInterval(() => {
+                setSkipCountdown((prev) => {
+                  if (prev <= 1) {
+                    clearInterval(interval)
+                    return 0
+                  }
+                  return prev - 1
+                })
+              }, 1000)
+              return () => clearInterval(interval)
+            }
+          } else if (active.rotationDuration > 0) {
+            const t = setTimeout(() => {
+              setIsAdVisible(false)
+            }, active.rotationDuration * 1000)
+            return () => clearTimeout(t)
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
+
   return (
     <main className="min-h-dvh overflow-x-hidden bg-background" style={{ scrollBehavior: 'smooth' }}>
 
@@ -620,6 +660,134 @@ export default function LandingPage() {
 
           {/* Left column */}
           <div className="text-center lg:text-left flex flex-col items-center lg:items-start w-full max-w-2xl">
+            {/* Dynamic Sponsoring: Banner Mode */}
+            {adConfig && isAdVisible && adConfig.landing?.displayMode === 'banner' && (
+              <div className="relative z-20 max-w-md w-full bg-[#1c1816]/90 border border-amber-500/30 rounded-2xl p-3.5 shadow-2xl flex flex-col gap-2 animate-unfurl mb-5 text-left">
+                <div className="flex items-center gap-2 border-b border-white/5 pb-2">
+                  {adConfig.adImage && adConfig.landing.adType !== 'only_video' ? (
+                    <MediaRenderer src={adConfig.adImage} type="image" className="h-6 w-6 rounded-md object-cover" />
+                  ) : (
+                    <div className="h-6 w-6 rounded-md bg-amber-500/10 flex items-center justify-center text-[9px] font-black text-amber-500 shrink-0">
+                      {adConfig.landing.adType === 'only_video' ? "🎬" : "AD"}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-heading font-black text-amber-400 tracking-wider leading-none uppercase truncate">
+                      {adConfig.sponsorName}
+                    </p>
+                    <p className="text-[8px] text-white/40 leading-none mt-0.5">Sponsor Officiel</p>
+                  </div>
+                  
+                  {adConfig.targetUrl && (
+                    <a
+                      href={adConfig.targetUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[9px] font-bold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                    >
+                      Découvrir <ArrowRight className="h-3 w-3" />
+                    </a>
+                  )}
+                  
+                  <button
+                    onClick={() => setIsAdVisible(false)}
+                    className="text-white/40 hover:text-white/80 p-0.5 rounded transition-colors text-[11px] font-black cursor-pointer leading-none ml-2"
+                    title="Fermer"
+                  >
+                    ×
+                  </button>
+                </div>
+                
+                {adConfig.landing.adType === 'text_banner' ? (
+                  <p className="text-[10px] font-sans text-white/80 leading-relaxed">
+                    {adConfig.adText}
+                  </p>
+                ) : adConfig.landing.adType === 'only_video' && adConfig.adVideo ? (
+                  <div className="rounded-lg overflow-hidden h-20 bg-black relative">
+                    <MediaRenderer src={adConfig.adVideo} type="video" className="w-full h-full object-cover" />
+                  </div>
+                ) : adConfig.adImage ? (
+                  <MediaRenderer src={adConfig.adImage} type="image" className="w-full h-20 object-cover rounded-lg" />
+                ) : null}
+              </div>
+            )}
+
+            {/* Dynamic Sponsoring: Full Screen Interstitial Overlay Mode */}
+            {adConfig && isAdVisible && adConfig.landing?.displayMode === 'fullscreen' && (
+              <div className="fixed inset-0 z-50 bg-[#0e0c0b]/98 backdrop-blur-md flex flex-col justify-between p-6 pt-12 animate-fade-in select-none text-left">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.03] via-transparent to-transparent pointer-events-none" />
+                
+                {/* Skip button header */}
+                <div className="flex justify-end relative z-10">
+                  {skipCountdown > 0 ? (
+                    <span className="text-xs font-black tracking-widest text-white/55 bg-white/5 border border-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                      Passer dans {skipCountdown}s
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setIsAdVisible(false)}
+                      className="text-xs font-black uppercase tracking-widest text-black bg-amber-400 border border-amber-400 px-5 py-2.5 rounded-full shadow-lg shadow-amber-400/20 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    >
+                      Passer l'annonce ×
+                    </button>
+                  )}
+                </div>
+
+                {/* Ad Body */}
+                <div className="flex-1 flex flex-col items-center justify-center my-6 relative z-10 max-w-lg mx-auto w-full">
+                  {adConfig.landing.adType === 'only_image' && adConfig.adImage ? (
+                    <MediaRenderer
+                      src={adConfig.adImage}
+                      type="image"
+                      alt="Publicité"
+                      className="w-full max-h-[70vh] object-contain rounded-2xl shadow-[0_20px_50px_rgba(251,191,36,0.12)] border border-white/10 animate-scale-up"
+                    />
+                  ) : adConfig.landing.adType === 'only_video' && adConfig.adVideo ? (
+                    <div className="w-full aspect-video rounded-2xl overflow-hidden bg-black/80 relative border border-white/10 shadow-[0_20px_50px_rgba(251,191,36,0.12)] animate-scale-up">
+                      <MediaRenderer src={adConfig.adVideo} type="video" className="w-full h-full object-cover" />
+                      <span className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-[8px] font-bold text-white uppercase tracking-widest px-2 py-0.5 rounded">
+                        Vidéo Sponsor
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="bg-[#1c1816]/95 border border-amber-500/25 rounded-3xl p-6 text-center space-y-4 shadow-2xl w-full max-w-md backdrop-blur-sm animate-scale-up">
+                      {adConfig.adImage && (
+                        <MediaRenderer src={adConfig.adImage} type="image" className="h-16 mx-auto object-contain rounded-lg" />
+                      )}
+                      <div>
+                        <span className="inline-block rounded-full bg-amber-500/10 px-3 py-1 font-heading text-[9px] font-black uppercase tracking-[0.2em] text-amber-400 mb-2 border border-amber-500/20">
+                          Sponsor Officiel
+                        </span>
+                        <h4 className="font-heading text-lg font-black text-white uppercase tracking-wider">
+                          {adConfig.sponsorName}
+                        </h4>
+                      </div>
+                      {adConfig.adText && (
+                        <p className="text-sm text-white/80 leading-relaxed font-sans px-2">
+                          {adConfig.adText}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* CTA Footer */}
+                {adConfig.targetUrl && (
+                  <div className="relative z-10 w-full max-w-sm mx-auto pt-4 border-t border-white/10">
+                    <a
+                      href={adConfig.targetUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black py-4 rounded-2xl font-heading text-xs font-black uppercase tracking-widest shadow-xl shadow-amber-500/15 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+                    >
+                      Découvrir l'offre <ArrowRight className="h-4 w-4" />
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
             <span className="animate-seal-in inline-flex items-center gap-2 rounded-full bg-white/[0.05] px-4 py-1.5 font-sans text-[11px] font-semibold uppercase tracking-[0.15em] text-amber-300/80 ring-1 ring-amber-400/15">
               <QrCode className="h-3.5 w-3.5" /> Chasse au trésor numérique
             </span>

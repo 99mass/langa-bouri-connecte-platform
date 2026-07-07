@@ -10,6 +10,7 @@ import {
   Palette,
   ArrowLeft,
   X,
+  Megaphone,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -23,6 +24,7 @@ const navItems = [
   { label: 'Compétitions', href: '/admin/competitions', icon: Trophy },
   { label: 'Partenaires', href: '/admin/partenaires', icon: Handshake },
   { label: 'Catégories', href: '/admin/categories', icon: Palette },
+  { label: 'Sponsoring', href: '/admin/sponsoring', icon: Megaphone },
 ]
 
 export default function Sidebar({ isOpen, onToggle }: SidebarProps) {

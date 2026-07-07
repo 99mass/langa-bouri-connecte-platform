@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Award, Check, Fingerprint, Lock, MapPin, Stamp, ChevronDown, ChevronUp, Sparkles, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { GAME, achievements, fragments } from "@/lib/game-data"
+import MediaRenderer from "@/components/lb/media-renderer"
 
 export function Profile({
   nickname,
@@ -18,6 +19,23 @@ export function Profile({
 }) {
   const found = fragments.filter((f) => f.status === "completed").length
   const progress = Math.round((found / GAME.totalFragments) * 100)
+
+  const [adConfig, setAdConfig] = useState<any>(null)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("lb_sponsoring_campaigns")
+      if (stored) {
+        const list = JSON.parse(stored)
+        const active = list.find((c: any) => c.isActive)
+        if (active && active.profile?.enabled) {
+          setAdConfig(active)
+        }
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
 
   if (!isAuthed) {
     return (
@@ -259,6 +277,119 @@ export function Profile({
           })}
         </div>
       </section>
+
+      {/* Sponsoring Banner */}
+      {adConfig && adConfig.profile?.displayMode === 'banner' && (
+        <div className="mt-8 mx-auto max-w-sm rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 text-center relative overflow-hidden shadow-sm">
+          <div className="absolute top-[-20px] left-[-20px] w-16 h-16 rounded-full bg-amber-500/10 blur-xl pointer-events-none" />
+          <div className="flex items-center justify-center gap-2 mb-2">
+            {adConfig.adImage && adConfig.profile.adType !== 'only_video' ? (
+              <MediaRenderer src={adConfig.adImage} type="image" className="h-6 w-6 rounded-md object-cover border border-amber-500/10" />
+            ) : (
+              <div className="h-6 w-6 rounded bg-amber-500/10 flex items-center justify-center text-[8px] font-black text-amber-500">
+                {adConfig.profile.adType === 'only_video' ? "🎬" : "AD"}
+              </div>
+            )}
+            <span className="font-heading text-[10px] font-bold text-amber-500 uppercase tracking-widest">
+              Sponsor Officiel : {adConfig.sponsorName}
+            </span>
+          </div>
+          
+          {adConfig.profile.adType === 'text_banner' ? (
+            <p className="font-serif text-[11px] leading-relaxed text-muted-foreground/90">
+              {adConfig.adText}
+            </p>
+          ) : adConfig.profile.adType === 'only_video' && adConfig.adVideo ? (
+            <div className="rounded-lg overflow-hidden h-20 bg-black relative mb-2">
+              <MediaRenderer src={adConfig.adVideo} type="video" className="w-full h-full object-cover" />
+            </div>
+          ) : adConfig.adImage ? (
+            <MediaRenderer src={adConfig.adImage} type="image" className="w-full h-20 object-cover rounded-lg mb-2" />
+          ) : null}
+
+          {adConfig.targetUrl && (
+            <a
+              href={adConfig.targetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-500 hover:text-amber-600 transition-colors cursor-pointer"
+            >
+              Visiter le sponsor <Award className="h-3 w-3" />
+            </a>
+          )}
+        </div>
+      )}
+
+      {/* Sponsoring Overlay: Full Screen Mode on Profile */}
+      {adConfig && adConfig.profile?.displayMode === 'fullscreen' && (
+        <div className="fixed inset-0 z-50 bg-[#0e0c0b]/98 backdrop-blur-md flex flex-col justify-between p-6 pt-12 animate-fade-in select-none text-left">
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.03] via-transparent to-transparent pointer-events-none" />
+          
+          {/* Close button */}
+          <div className="flex justify-end relative z-10">
+            <button
+              type="button"
+              onClick={() => {
+                setAdConfig(null)
+              }}
+              className="text-xs font-black uppercase tracking-widest text-black bg-amber-400 border border-amber-400 px-5 py-2.5 rounded-full shadow-lg shadow-amber-400/20 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
+            >
+              Fermer l'annonce ×
+            </button>
+          </div>
+
+          {/* Ad Body */}
+          <div className="flex-1 flex flex-col items-center justify-center my-6 relative z-10 max-w-lg mx-auto w-full">
+            {adConfig.profile.adType === 'only_image' && adConfig.adImage ? (
+              <MediaRenderer
+                src={adConfig.adImage}
+                type="image"
+                className="w-full max-h-[70vh] object-contain rounded-2xl shadow-[0_20px_50px_rgba(251,191,36,0.12)] border border-white/10"
+              />
+            ) : adConfig.profile.adType === 'only_video' && adConfig.adVideo ? (
+              <div className="w-full aspect-video rounded-2xl overflow-hidden bg-black/80 relative border border-white/10 shadow-[0_20px_50px_rgba(251,191,36,0.12)]">
+                <MediaRenderer src={adConfig.adVideo} type="video" className="w-full h-full object-cover" />
+                <span className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-[8px] font-bold text-white uppercase tracking-widest px-2 py-0.5 rounded">
+                  Vidéo Sponsor
+                </span>
+              </div>
+            ) : (
+              <div className="bg-[#1c1816]/95 border border-amber-500/25 rounded-3xl p-6 text-center space-y-4 shadow-2xl w-full max-w-md backdrop-blur-sm">
+                {adConfig.adImage && (
+                  <MediaRenderer src={adConfig.adImage} type="image" className="h-16 mx-auto object-contain rounded-lg" />
+                )}
+                <div>
+                  <span className="inline-block rounded-full bg-amber-500/10 px-3 py-1 font-heading text-[9px] font-black uppercase tracking-[0.2em] text-amber-400 mb-2 border border-amber-500/20">
+                    Sponsor Officiel
+                  </span>
+                  <h4 className="font-heading text-lg font-black text-white uppercase tracking-wider">
+                    {adConfig.sponsorName}
+                  </h4>
+                </div>
+                {adConfig.adText && (
+                  <p className="text-sm text-white/80 leading-relaxed font-sans px-2">
+                    {adConfig.adText}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* CTA Footer */}
+          {adConfig.targetUrl && (
+            <div className="relative z-10 w-full max-w-sm mx-auto pt-4 border-t border-white/10">
+              <a
+                href={adConfig.targetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black py-4 rounded-2xl font-heading text-xs font-black uppercase tracking-widest shadow-xl shadow-amber-500/15 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+              >
+                Découvrir l'offre <Award className="h-4 w-4" />
+              </a>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Disconnect Button */}
       {onDisconnect && (

@@ -1,11 +1,12 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Check, Clock, Compass, Crown, Lock, Sparkles } from "lucide-react"
+import { Check, Clock, Compass, Crown, Lock, Sparkles, ExternalLink } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { GAME, type Fragment } from "@/lib/game-data"
 import { useTheme } from "@/lib/theme-context"
 import { ThemeIcon } from "@/components/lb/theme-icon"
+import MediaRenderer from "@/components/lb/media-renderer"
 
 /* ═══════════════════════════════════════════
    Duolingo-style winding path positions.
@@ -229,6 +230,45 @@ export function MapDashboard({
   const scrollRef = useRef<HTMLDivElement>(null)
   const pathPositions = fragments.map((_, i) => getPathX(i))
 
+  const [adConfig, setAdConfig] = useState<any>(null)
+  const [isAdVisible, setIsAdVisible] = useState(true)
+  const [skipCountdown, setSkipCountdown] = useState(0)
+
+  // Load sponsoring config
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("lb_sponsoring")
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (parsed.isEnabled && parsed.displayOnMap) {
+          setAdConfig(parsed)
+          if (parsed.displayMode === 'fullscreen') {
+            setSkipCountdown(parsed.skipDuration)
+            if (parsed.skipDuration > 0) {
+              const interval = setInterval(() => {
+                setSkipCountdown((prev) => {
+                  if (prev <= 1) {
+                    clearInterval(interval)
+                    return 0
+                  }
+                  return prev - 1
+                })
+              }, 1000)
+              return () => clearInterval(interval)
+            }
+          } else if (parsed.rotationDuration > 0) {
+            const t = setTimeout(() => {
+              setIsAdVisible(false)
+            }, parsed.rotationDuration * 1000)
+            return () => clearTimeout(t)
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
+
   // Auto-scroll to active node on mount to prevent it being hidden under bottom nav
   useEffect(() => {
     const container = scrollRef.current
@@ -247,6 +287,138 @@ export function MapDashboard({
 
   return (
     <div className="relative flex h-full flex-col bg-transparent">
+      {/* Dynamic Sponsoring: Banner Mode */}
+      {adConfig && isAdVisible && adConfig.displayMode === 'banner' && (
+        <div className="relative z-30 mx-auto w-[90%] mt-3 bg-black/90 border border-amber-500/35 rounded-2xl p-3 shadow-2xl flex flex-col gap-2 animate-unfurl">
+          <div className="flex items-center gap-2 border-b border-white/10 pb-2">
+            {adConfig.adImage && adConfig.adType !== 'only_video' ? (
+              <MediaRenderer src={adConfig.adImage} type="image" className="h-6 w-6 rounded-md object-cover" />
+            ) : (
+              <div className="h-6 w-6 rounded-md bg-amber-500/20 flex items-center justify-center text-[10px] font-black text-amber-500 shrink-0">
+                {adConfig.adType === 'only_video' ? "🎬" : "AD"}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-heading font-black text-amber-400 tracking-wider leading-none uppercase truncate">
+                {adConfig.sponsorName}
+              </p>
+              <p className="text-[8px] text-white/50 leading-none mt-0.5">Sponsor Officiel</p>
+            </div>
+            
+            {adConfig.targetUrl && (
+              <a
+                href={adConfig.targetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[9px] font-bold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+              >
+                Découvrir <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+            
+            <button
+              onClick={() => setIsAdVisible(false)}
+              className="text-white/40 hover:text-white/80 p-0.5 rounded transition-colors text-[11px] font-black cursor-pointer leading-none ml-2"
+              title="Masquer"
+            >
+              ×
+            </button>
+          </div>
+          
+          {adConfig.adType === 'text_banner' ? (
+            <p className="text-[10px] font-sans text-white/85 leading-relaxed">
+              {adConfig.adText}
+            </p>
+          ) : adConfig.adType === 'only_video' && adConfig.adVideo ? (
+            <div className="rounded-lg overflow-hidden h-20 bg-black relative">
+              <MediaRenderer src={adConfig.adVideo} type="video" className="w-full h-full object-cover" />
+            </div>
+          ) : adConfig.adImage ? (
+            <MediaRenderer src={adConfig.adImage} type="image" className="w-full h-20 object-cover rounded-lg" />
+          ) : null}
+        </div>
+      )}
+
+      {/* Dynamic Sponsoring: Full Screen Interstitial Overlay Mode */}
+      {adConfig && isAdVisible && adConfig.displayMode === 'fullscreen' && (
+        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col justify-between p-6 pt-12 animate-fade-in select-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.03] via-transparent to-transparent pointer-events-none" />
+          
+          {/* Skip / Close timer header */}
+          <div className="flex justify-end relative z-10">
+            {skipCountdown > 0 ? (
+              <span className="text-xs font-black tracking-widest text-white/55 bg-white/5 border border-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                Passer dans {skipCountdown}s
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsAdVisible(false)}
+                className="text-xs font-black uppercase tracking-widest text-black bg-amber-400 border border-amber-400 px-5 py-2.5 rounded-full shadow-lg shadow-amber-400/20 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
+                Passer l'annonce ×
+              </button>
+            )}
+          </div>
+
+          {/* Ad Resource Body */}
+          <div className="flex-1 flex flex-col items-center justify-center my-6 relative z-10 max-w-lg mx-auto w-full">
+            {adConfig.adType === 'only_image' && adConfig.adImage ? (
+              <MediaRenderer
+                src={adConfig.adImage}
+                type="image"
+                className="w-full max-h-[70vh] object-contain rounded-2xl shadow-[0_20px_50px_rgba(251,191,36,0.12)] border border-white/10 animate-scale-up"
+              />
+            ) : adConfig.adType === 'only_video' && adConfig.adVideo ? (
+              <div className="w-full aspect-video rounded-2xl overflow-hidden bg-black/80 relative border border-white/10 shadow-[0_20px_50px_rgba(251,191,36,0.12)] animate-scale-up">
+                <MediaRenderer
+                  src={adConfig.adVideo}
+                  type="video"
+                  className="w-full h-full object-cover"
+                />
+                <span className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-[8px] font-bold text-white uppercase tracking-widest px-2 py-0.5 rounded">
+                  Vidéo Sponsor
+                </span>
+              </div>
+            ) : (
+              /* Text + Banner card fallback */
+              <div className="bg-[#1c1816]/95 border border-amber-500/25 rounded-3xl p-6 text-center space-y-4 shadow-2xl w-full max-w-md backdrop-blur-sm animate-scale-up">
+                {adConfig.adImage && (
+                  <MediaRenderer src={adConfig.adImage} type="image" className="h-16 mx-auto object-contain rounded-lg" />
+                )}
+                <div>
+                  <span className="inline-block rounded-full bg-amber-500/10 px-3 py-1 font-heading text-[9px] font-black uppercase tracking-[0.2em] text-amber-400 mb-2 border border-amber-500/20">
+                    Sponsor Officiel
+                  </span>
+                  <h4 className="font-heading text-lg font-black text-white uppercase tracking-wider">
+                    {adConfig.sponsorName}
+                  </h4>
+                </div>
+                
+                {adConfig.adText && (
+                  <p className="text-sm text-white/80 leading-relaxed font-sans px-2">
+                    {adConfig.adText}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* CTA Link Footer */}
+          {adConfig.targetUrl && (
+            <div className="relative z-10 w-full max-w-sm mx-auto pt-4 border-t border-white/10">
+              <a
+                href={adConfig.targetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black py-4 rounded-2xl font-heading text-xs font-black uppercase tracking-widest shadow-xl shadow-amber-500/15 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+              >
+                Découvrir l'offre <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Scrollable path area ── */}
       <div ref={scrollRef} className="relative flex-1 overflow-y-auto overflow-x-hidden pb-32 pt-4 bg-transparent">
