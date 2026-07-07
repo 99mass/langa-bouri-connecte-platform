@@ -26,6 +26,7 @@ export type Fragment = {
   story: string
   clue: string
   media: "image" | "audio" | "video"
+  mediaUrl?: string
   reward: string
   status: "completed" | "active" | "locked"
   x: number

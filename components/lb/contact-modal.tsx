@@ -92,7 +92,27 @@ export function ContactModal({ onClose }: { onClose: () => void }) {
           ) : (
             /* ── Form ── */
             <form
-              onSubmit={(e) => { e.preventDefault(); setSent(true) }}
+              onSubmit={(e) => {
+                e.preventDefault()
+                try {
+                  const existing = JSON.parse(localStorage.getItem("lb_partner_requests") || "[]")
+                  const newRequest = {
+                    id: Date.now(),
+                    name: form.name,
+                    email: form.email,
+                    phone: form.phone,
+                    org: form.org,
+                    interest: form.interest,
+                    message: form.message,
+                    status: "pending",
+                    createdAt: new Date().toISOString()
+                  }
+                  localStorage.setItem("lb_partner_requests", JSON.stringify([newRequest, ...existing]))
+                } catch (err) {
+                  console.error("Failed to save partnership request", err)
+                }
+                setSent(true)
+              }}
               className="flex flex-col gap-4 px-6 py-6"
             >
               {/* Name & Email row */}
