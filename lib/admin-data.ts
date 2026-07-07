@@ -152,15 +152,17 @@ export const competitions: Competition[] = [
    PARTENAIRE
    ═══════════════════════════════════════════ */
 
-export type PartenaireType = "sponsor" | "media" | "institutionnel" | "technique"
-
+export type PartenaireType = 'sponsor' | 'media' | 'institutionnel' | 'technique'
 export type Partenaire = {
   id: number
-  name: string
+  name: string // Contact Name
+  org?: string // Company / Brand Name
   logo: string
   website: string
   type: PartenaireType
   description: string
+  email?: string
+  phone?: string
   isActive: boolean
   createdAt: string
 }

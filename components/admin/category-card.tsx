@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Plus } from 'lucide-react'
+import { X, Plus, Pencil, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ThemeConfig, ThemeId } from '@/lib/theme-config'
 
@@ -9,6 +9,8 @@ type CategoryCardProps = {
   config: ThemeConfig
   onUpdateDescription: (id: ThemeId, desc: string) => void
   onUpdateKeywords: (id: ThemeId, keywords: string[]) => void
+  onEdit: (config: ThemeConfig) => void
+  onDelete: (id: ThemeId) => void
 }
 
 const colorVarKeys = ['--accent', '--gold', '--ember', '--quest'] as const
@@ -17,6 +19,8 @@ export default function CategoryCard({
   config,
   onUpdateDescription,
   onUpdateKeywords,
+  onEdit,
+  onDelete,
 }: CategoryCardProps) {
   const [desc, setDesc] = useState(config.description)
   const [newKeyword, setNewKeyword] = useState('')
@@ -50,20 +54,40 @@ export default function CategoryCard({
   }
 
   return (
-    <div className="bg-card rounded-2xl border border-border p-5 flex flex-col gap-4">
-      {/* Header: icon circle + label */}
-      <div className="flex items-center gap-3">
-        <div
-          className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0"
-          style={{ background: config.cssVars['--accent'] }}
-        >
-          {config.label.charAt(0)}
+    <div className="bg-card rounded-2xl border border-border p-5 flex flex-col gap-4 hover:shadow-md transition-shadow">
+      {/* Header: icon circle + label + actions */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div
+            className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0"
+            style={{ background: config.cssVars['--accent'] }}
+          >
+            {config.label.charAt(0)}
+          </div>
+          <div>
+            <h3 className="font-heading font-bold text-primary text-sm leading-tight">
+              {config.label}
+            </h3>
+            <p className="text-[11px] text-muted-foreground">{config.id}</p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-heading font-bold text-primary text-sm leading-tight">
-            {config.label}
-          </h3>
-          <p className="text-[11px] text-muted-foreground">{config.id}</p>
+
+        {/* Action icons */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => onEdit(config)}
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-primary transition-colors cursor-pointer"
+            title="Modifier la catégorie"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={() => onDelete(config.id)}
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-rose-500/10 hover:text-rose-500 transition-colors cursor-pointer"
+            title="Supprimer la catégorie"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
 
@@ -94,12 +118,12 @@ export default function CategoryCard({
           {config.decorKeywords.map((kw) => (
             <span
               key={kw}
-              className="inline-flex items-center gap-1 bg-muted rounded-full px-2 py-0.5 text-xs text-primary"
+              className="inline-flex items-center gap-1 bg-muted rounded-full px-2 py-0.5 text-xs text-primary animate-fade-in"
             >
               {kw}
               <button
                 onClick={() => removeKeyword(kw)}
-                className="text-muted-foreground hover:text-red-500 transition-colors"
+                className="text-muted-foreground hover:text-red-500 transition-colors cursor-pointer"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -119,7 +143,7 @@ export default function CategoryCard({
             onClick={addKeyword}
             disabled={!newKeyword.trim()}
             className={cn(
-              'rounded-lg p-1.5 transition-colors',
+              'rounded-lg p-1.5 transition-colors cursor-pointer',
               newKeyword.trim()
                 ? 'text-accent hover:bg-accent/10'
                 : 'text-muted-foreground/40 cursor-not-allowed'
